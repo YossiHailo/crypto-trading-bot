@@ -1,0 +1,159 @@
+# Runs the paper-trading bot in GitHub's cloud, so it does not depend on your computer.
+#
+# Every ~15 minutes GitHub starts a fresh machine that:
+#   1. downloads the bot's saved state (portfolio database, reports) from the `state` branch,
+#   2. runs ONE check (python main.py --once),
+#   3. writes the dashboard snapshot (docs/state.json) and today's daily report,
+#   4. saves everything back to the `state` branch.
+# GitHub Pages serves docs/ from the `state` branch as the dashboard website.
+#
+# Remote control: Actions tab -> "Trading bot" -> Run workflow -> pick an action.
+# Stop completely: Actions tab -> "Trading bot" -> ... -> Disable workflow.
+#
+# PAPER TRADING ONLY. No exchange keys are used or needed here.
+
+name: Trading bot
+
+on:
+  schedule:
+    # Every 15 minutes, off the round minutes (GitHub delays jobs queued at :00).
+    # GitHub may run scheduled jobs late or skip some when it is busy.
+    - cron: "7,22,37,52 * * * *"
+  workflow_dispatch:
+    inputs:
+      action:
+        description: "Action (none = just run a check now)"
+        type: choice
+        default: none
+        options: [none, pause, resume, close-all, reset-halt]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: trading-bot
+  cancel-in-progress: false
+
+env:
+  # ---- the experiment ----
+  PAPER_TRADING: "true"
+  STARTING_BALANCE: "1000"
+  MONTHLY_DEPOSIT: "100"     # simulated bank transfer, every month
+  DEPOSIT_DAY: "1"           # on the 1st, 00:00 UTC
+  # ---- market data ----
+  EXCHANGE_ID: binance
+  MARKET_TYPE: spot
+  # Binance's public data mirror; api.binance.com refuses US cloud machines (HTTP 451).
+  MARKET_DATA_URL: https://data-api.binance.vision/api/v3
+  MARKET_DATA_FALLBACK: kraken
+  SYMBOLS: BTC/USDT,ETH/USDT
+  TIMEFRAME: 4h
+  OHLCV_LIMIT: "300"
+  LOOP_INTERVAL_MINUTES: "15"
+  # ---- strategy and risk (same as the computer setup) ----
+  STRATEGY: trend
+  RISK_PER_TRADE: "0.01"
+  REWARD_RISK_RATIO: "3.0"
+  MIN_REWARD_RISK: "1.5"
+  MIN_CONFIDENCE: "0.55"
+  MAX_OPEN_POSITIONS: "3"
+  MAX_NOTIONAL_PCT: "0.5"
+  MAX_TOTAL_EXPOSURE_PCT: "1.0"
+  DAILY_MAX_LOSS_PCT: "0.05"
+  MAX_DRAWDOWN_PCT: "0.20"
+  COOLDOWN_MINUTES: "60"
+  USE_ATR_STOPS: "true"
+  ATR_MULTIPLIER: "2.5"
+  ALLOW_SHORT: "false"
+  ORDER_TYPE: market
+  FEE_RATE: "0.001"
+  SLIPPAGE_PCT: "0.0005"
+  MIN_NOTIONAL: "10"
+  QUOTE_CURRENCY: USDT
+  # ---- runtime ----
+  DASHBOARD_ENABLED: "false"
+  DATA_DIR: state/data
+  LOG_DIR: state/logs
+  DECISIONS_RETENTION_DAYS: "90"
+  LOG_LEVEL: INFO
+  REPORT_TZ: Asia/Jerusalem
+  # Optional phone alerts: add these as repository secrets (Settings -> Secrets -> Actions).
+  TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+  TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+
+jobs:
+  cycle:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install
+        run: pip install -r requirements.txt
+
+      - name: Restore saved state
+        id: restore
+        run: |
+          remote="https://x-access-token:${{ github.token }}@github.com/${GITHUB_REPOSITORY}.git"
+          set +e
+          git ls-remote --exit-code --heads "$remote" state > /dev/null
+          code=$?
+          set -e
+          if [ "$code" = "2" ]; then
+            # The branch does not exist: first run ever, start a new paper account.
+            mkdir -p state
+            echo "No state branch yet: starting a new paper account."
+          elif [ "$code" = "0" ]; then
+            git clone --quiet --depth 1 --branch state "$remote" state
+            rm -rf state/.git
+            echo "Restored state from the state branch."
+          else
+            # Never start over (and overwrite the account) because of a network hiccup.
+            echo "Could not reach the state branch (exit $code). Stopping without saving."
+            exit 1
+          fi
+          echo "ok=true" >> "$GITHUB_OUTPUT"
+
+      - name: Run one check
+        env:
+          ACTION: ${{ inputs.action || 'none' }}
+        run: python main.py --once --action "$ACTION" --export-state state/docs/state.json
+
+      - name: Daily reports
+        if: always() && steps.restore.outputs.ok == 'true'
+        run: |
+          if [ -f state/data/portfolio.sqlite ]; then
+            today=$(TZ="$REPORT_TZ" date +%F)
+            yesterday=$(TZ="$REPORT_TZ" date -d yesterday +%F)
+            python scripts/daily_report.py --db state/data/portfolio.sqlite --out state/reports/daily --tz "$REPORT_TZ" --interval "$LOOP_INTERVAL_MINUTES" --date "$yesterday" > /dev/null
+            python scripts/daily_report.py --db state/data/portfolio.sqlite --out state/reports/daily --tz "$REPORT_TZ" --interval "$LOOP_INTERVAL_MINUTES" --date "$today" > state/reports/today.md
+          fi
+
+      - name: Save state
+        if: always() && steps.restore.outputs.ok == 'true'
+        run: |
+          if [ -f state/data/portfolio.sqlite ]; then
+            # Fold the write-ahead log into the database file before saving it.
+            python -c "import sqlite3; c = sqlite3.connect('state/data/portfolio.sqlite'); c.execute('PRAGMA wal_checkpoint(TRUNCATE)'); c.close()"
+          fi
+          mkdir -p state/docs
+          cp dashboard/static/index.html state/docs/index.html
+          # Daily reports on the website too: <site>/reports/
+          if [ -d state/reports/daily ]; then mkdir -p state/docs/reports && cp state/reports/daily/* state/docs/reports/; fi
+          touch state/docs/.nojekyll
+          # Keep logs small: the last 3000 lines are plenty for troubleshooting.
+          for f in state/logs/*.log; do [ -f "$f" ] && tail -n 3000 "$f" > "$f.tmp" && mv "$f.tmp" "$f"; done
+          rm -f state/logs/*.log.[0-9]*
+          cd state
+          git init --quiet
+          git config user.name "trading-bot"
+          git config user.email "trading-bot@users.noreply.github.com"
+          git checkout --quiet --orphan state
+          git add -A
+          git commit --quiet -m "State after run ${GITHUB_RUN_NUMBER} ($(date -u +%FT%TZ))"
+          git push --quiet --force "https://x-access-token:${{ github.token }}@github.com/${GITHUB_REPOSITORY}.git" state
