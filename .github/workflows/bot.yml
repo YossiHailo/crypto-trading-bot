@@ -1,10 +1,13 @@
 # Runs the paper-trading bot in GitHub's cloud, so it does not depend on your computer.
 #
-# Every ~15 minutes GitHub starts a fresh machine that:
+# Each run:
 #   1. downloads the bot's saved state (portfolio database, reports) from the `state` branch,
-#   2. runs ONE check (python main.py --once),
-#   3. writes the dashboard snapshot (docs/state.json) and today's daily report,
-#   4. saves everything back to the `state` branch.
+#   2. runs one check every 15 minutes for about 5.5 hours (scripts/cloud_loop.sh), and after
+#      every check writes the dashboard snapshot and daily report and saves everything back
+#      to the `state` branch (scripts/cloud_save.sh),
+#   3. starts the next run of this workflow, so the chain does not depend on GitHub's
+#      scheduler (which can be late or skip runs). The schedule below is only a backup that
+#      restarts the chain if it ever breaks.
 # GitHub Pages serves docs/ from the `state` branch as the dashboard website.
 #
 # Remote control: Actions tab -> "Trading bot" -> Run workflow -> pick an action.
@@ -16,9 +19,9 @@ name: Trading bot
 
 on:
   schedule:
-    # Every 15 minutes, off the round minutes (GitHub delays jobs queued at :00).
-    # GitHub may run scheduled jobs late or skip some when it is busy.
-    - cron: "4,19,34,49 * * * *"
+    # Backup only: restarts the chain if it broke. While a run is active, a scheduled
+    # run waits in the queue (concurrency) and the newest waiting run replaces older ones.
+    - cron: "4 */3 * * *"
   workflow_dispatch:
     inputs:
       action:
@@ -26,13 +29,21 @@ on:
         type: choice
         default: none
         options: [none, pause, resume, close-all, reset-halt]
+      chain:
+        description: "Internal: set by the bot when it starts its own next run. Leave unticked."
+        type: boolean
+        default: false
 
 permissions:
   contents: write
+  actions: write
 
+# One run at a time. A run you start by hand (Run workflow) replaces the running loop right
+# away, so remote-control actions apply within a minute or two. Runs the bot chains to
+# itself, and the backup schedule, wait for the running loop instead.
 concurrency:
   group: trading-bot
-  cancel-in-progress: false
+  cancel-in-progress: ${{ github.event_name == 'workflow_dispatch' && !inputs.chain }}
 
 env:
   # ---- the experiment ----
@@ -50,6 +61,7 @@ env:
   TIMEFRAME: 4h
   OHLCV_LIMIT: "300"
   LOOP_INTERVAL_MINUTES: "15"
+  LOOP_MINUTES: "330"
   # ---- strategy and risk (same as the computer setup) ----
   STRATEGY: trend
   RISK_PER_TRADE: "0.01"
@@ -84,7 +96,7 @@ env:
 jobs:
   cycle:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 350
     steps:
       - uses: actions/checkout@v4
 
@@ -119,41 +131,14 @@ jobs:
           fi
           echo "ok=true" >> "$GITHUB_OUTPUT"
 
-      - name: Run one check
+      - name: Run checks every 15 minutes
         env:
           ACTION: ${{ inputs.action || 'none' }}
-        run: python main.py --once --action "$ACTION" --export-state state/docs/state.json
+          GH_TOKEN: ${{ github.token }}
+        run: bash scripts/cloud_loop.sh
 
-      - name: Daily reports
-        if: always() && steps.restore.outputs.ok == 'true'
-        run: |
-          if [ -f state/data/portfolio.sqlite ]; then
-            today=$(TZ="$REPORT_TZ" date +%F)
-            yesterday=$(TZ="$REPORT_TZ" date -d yesterday +%F)
-            python scripts/daily_report.py --db state/data/portfolio.sqlite --out state/reports/daily --tz "$REPORT_TZ" --interval "$LOOP_INTERVAL_MINUTES" --date "$yesterday" > /dev/null
-            python scripts/daily_report.py --db state/data/portfolio.sqlite --out state/reports/daily --tz "$REPORT_TZ" --interval "$LOOP_INTERVAL_MINUTES" --date "$today" > state/reports/today.md
-          fi
-
-      - name: Save state
-        if: always() && steps.restore.outputs.ok == 'true'
-        run: |
-          if [ -f state/data/portfolio.sqlite ]; then
-            # Fold the write-ahead log into the database file before saving it.
-            python -c "import sqlite3; c = sqlite3.connect('state/data/portfolio.sqlite'); c.execute('PRAGMA wal_checkpoint(TRUNCATE)'); c.close()"
-          fi
-          mkdir -p state/docs
-          cp dashboard/static/index.html state/docs/index.html
-          # Daily reports on the website too: <site>/reports/
-          if [ -d state/reports/daily ]; then mkdir -p state/docs/reports && cp state/reports/daily/* state/docs/reports/; fi
-          touch state/docs/.nojekyll
-          # Keep logs small: the last 3000 lines are plenty for troubleshooting.
-          for f in state/logs/*.log; do [ -f "$f" ] && tail -n 3000 "$f" > "$f.tmp" && mv "$f.tmp" "$f"; done
-          rm -f state/logs/*.log.[0-9]*
-          cd state
-          git init --quiet
-          git config user.name "trading-bot"
-          git config user.email "trading-bot@users.noreply.github.com"
-          git checkout --quiet --orphan state
-          git add -A
-          git commit --quiet -m "State after run ${GITHUB_RUN_NUMBER} ($(date -u +%FT%TZ))"
-          git push --quiet --force "https://x-access-token:${{ github.token }}@github.com/${GITHUB_REPOSITORY}.git" state
+      - name: Start the next run
+        if: ${{ !cancelled() && steps.restore.outputs.ok == 'true' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run bot.yml --repo "$GITHUB_REPOSITORY" --ref main -f action=none -f chain=true
