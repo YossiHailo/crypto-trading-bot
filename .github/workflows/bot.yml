@@ -18,7 +18,7 @@ on:
   schedule:
     # Every 15 minutes, off the round minutes (GitHub delays jobs queued at :00).
     # GitHub may run scheduled jobs late or skip some when it is busy.
-    - cron: "7,22,37,52 * * * *"
+    - cron: "4,19,34,49 * * * *"
   workflow_dispatch:
     inputs:
       action:
