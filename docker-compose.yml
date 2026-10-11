@@ -1,0 +1,25 @@
+# 24/7 paper (or live) loop with the local dashboard.
+# 1. cp .env.example .env   2. set DASHBOARD_TOKEN in .env   3. docker compose up -d --build
+# Then open http://127.0.0.1:8765 and enter the token once.
+services:
+  trading-bot:
+    build: .
+    env_file:
+      - .env
+    environment:
+      # Inside the container the server must listen on all interfaces. The port is
+      # still published on the host's loopback only (see "ports"), and the token is required.
+      DASHBOARD_HOST: 0.0.0.0
+      DASHBOARD_TOKEN: ${DASHBOARD_TOKEN:?Set DASHBOARD_TOKEN in .env (any long random string)}
+    ports:
+      - "127.0.0.1:8765:8765"
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+      - ./reports:/app/reports
+    restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
