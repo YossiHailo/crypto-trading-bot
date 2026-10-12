@@ -105,8 +105,26 @@ def build_state(ctx: DashboardContext) -> dict[str, Any]:
     monthly = settings.monthly_deposit if settings.paper_trading else 0.0
     peak = max(view.peak_equity, view.equity)
     peak_dd = _pct(peak - view.equity, peak) or 0.0
+    config = settings.public_summary()
+    arena = None
+    if settings.arena_enabled and settings.paper_trading:
+        from core.arena import current_champion, load_json, state_path
+
+        config["strategy"] = current_champion(settings) or settings.strategy
+        raw = load_json(state_path(settings))
+        if raw:
+            arena = {
+                "champion": raw.get("champion"),
+                "champion_since": raw.get("champion_since"),
+                "updated_at": raw.get("updated_at"),
+                "standings": raw.get("standings", []),
+                "history": raw.get("history", [])[-10:],
+                "rules": raw.get("rules", {}),
+                "research": raw.get("research"),
+            }
     return {
-        "config": settings.public_summary(),
+        "config": config,
+        "arena": arena,
         "status": {
             "mode": status.mode,
             "started_at": status.started_at,

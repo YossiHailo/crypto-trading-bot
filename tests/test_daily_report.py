@@ -76,3 +76,33 @@ def test_daily_report_html_page_and_index(tmp_path) -> None:
     page = (out / "2026-10-08.html").read_text(encoding="utf-8")
     assert '<meta charset="utf-8">' in page and "<h1>דוח יומי 2026-10-08</h1>" in page and "<table>" in page
     assert '2026-10-08.html' in (out / "index.html").read_text(encoding="utf-8")
+
+
+def test_daily_report_includes_the_strategy_tournament(tmp_path) -> None:
+    import json
+
+    from scripts.daily_report import main as report_main
+
+    clock = {"now": START}
+    store = PortfolioStore(tmp_path / "a.sqlite", 1_000, fee_rate=0.0, clock=lambda: clock["now"])
+    store.record_equity({})
+    store.close()
+    (tmp_path / "arena").mkdir()
+    (tmp_path / "arena" / "arena.json").write_text(json.dumps({
+        "champion": "rsi_dip",
+        "standings": [
+            {"strategy": "rsi_dip", "label_he": "קנייה בירידה זמנית", "status": "active", "equity": 1010, "deposits": 1000,
+             "true_profit": 10, "true_profit_pct": 0.01, "trades": 2, "wins": 1, "champion": True},
+            {"strategy": "trend", "label_he": "מעקב מגמה", "status": "eliminated", "equity": 890, "deposits": 1000,
+             "true_profit": -110, "true_profit_pct": -0.11, "trades": 5, "wins": 1, "champion": False},
+        ],
+        "history": [{"at": "2026-10-08T05:00:00+00:00", "from": "trend", "to": "rsi_dip", "reason": "trend was eliminated"}],
+    }), encoding="utf-8")
+    out = tmp_path / "out"
+    assert report_main(["--db", str(tmp_path / "a.sqlite"), "--out", str(out), "--date", "2026-10-08"]) == 0
+    data = json.loads((out / "2026-10-08.json").read_text(encoding="utf-8"))
+    assert data["arena"]["champion"] == "rsi_dip"
+    assert data["arena"]["eliminated"] == ["trend"]
+    assert len(data["arena"]["switches_today"]) == 1
+    md = (out / "2026-10-08.md").read_text(encoding="utf-8")
+    assert "תחרות השיטות" in md and "הודחה" in md

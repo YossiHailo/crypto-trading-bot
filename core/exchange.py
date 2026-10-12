@@ -40,20 +40,24 @@ def build_ccxt_exchange(settings: Settings, *, authenticated: bool) -> Any:
     return exchange
 
 
+def apply_public_url(exchange: Any, url: str) -> None:
+    """Point a CCXT client's public REST API at ``url`` and load spot markets only."""
+    api = getattr(exchange, "urls", {}).get("api")
+    if isinstance(api, dict) and "public" in api:
+        api["public"] = url.rstrip("/")
+    # Spot candles only: avoids loading futures markets from hosts that may be blocked.
+    options = dict(getattr(exchange, "options", {}) or {})
+    current = options.get("fetchMarkets")
+    # CCXT changed this option's shape over time: a list, or {"types": [...]}.
+    options["fetchMarkets"] = {**current, "types": ["spot"]} if isinstance(current, dict) else ["spot"]
+    exchange.options = options
+
+
 def build_market_data_exchanges(settings: Settings) -> list[Any]:
     """Public clients for candles: the configured exchange, then an optional fallback."""
     primary = build_ccxt_exchange(settings, authenticated=False)
     if settings.market_data_url:
-        url = settings.market_data_url.rstrip("/")
-        api = getattr(primary, "urls", {}).get("api")
-        if isinstance(api, dict) and "public" in api:
-            api["public"] = url
-        # Spot candles only: avoids loading futures markets from hosts that may be blocked.
-        options = dict(getattr(primary, "options", {}) or {})
-        current = options.get("fetchMarkets")
-        # CCXT changed this option's shape over time: a list, or {"types": [...]}.
-        options["fetchMarkets"] = {**current, "types": ["spot"]} if isinstance(current, dict) else ["spot"]
-        primary.options = options
+        apply_public_url(primary, settings.market_data_url)
     clients = [primary]
     if settings.market_data_fallback and settings.market_data_fallback != settings.exchange_id:
         cls = getattr(ccxt_async, settings.market_data_fallback, None)

@@ -30,6 +30,7 @@ from agents.risk import RiskManager
 from agents.sentiment import SentimentAgent
 from agents.strategies import build_strategy
 from config.settings import Settings, assert_trading_mode
+from core.arena import CachedCandleSource, current_champion, run_arena
 from core.control import Controller
 from core.errors import LiveTradingNotConfirmedError
 from core.exchange import build_ccxt_exchange, build_market_data_exchanges
@@ -130,6 +131,11 @@ class Runtime:
                 logger.exception("Error while closing %s", name)
 
 
+def active_strategy(settings: Settings) -> str:
+    """STRATEGY, or the tournament champion when ARENA_AUTO_SELECT is on."""
+    return current_champion(settings) or settings.strategy
+
+
 def build_runtime(settings: Settings) -> Runtime:
     """Construct agents. Live mode has already been confirmed by the caller."""
     store = PortfolioStore(
@@ -143,11 +149,13 @@ def build_runtime(settings: Settings) -> Runtime:
         max_drawdown_pct=settings.max_drawdown_pct,
     )
     sources = [CcxtCandleSource(client, settings.request_timeout_seconds) for client in build_market_data_exchanges(settings)]
+    # One download per symbol per cycle, shared by the main account and the strategy tournament.
+    candles = CachedCandleSource(sources[0] if len(sources) == 1 else FallbackCandleSource(sources))
     market = MarketDataAgent(
-        sources[0] if len(sources) == 1 else FallbackCandleSource(sources),
+        candles,
         settings.timeframe,
         settings.ohlcv_limit,
-        strategy=build_strategy(settings.strategy),
+        strategy=build_strategy(active_strategy(settings)),
     )
     sentiment = SentimentAgent(settings)
     risk = RiskManager(settings)
@@ -207,6 +215,25 @@ async def _apply_once_action(runtime: Runtime, action: str, prices: dict[str, fl
     logger.warning(message)
     store.add_event("warning" if action == "close-all" else "info", message)
     await runtime.notifier.info(message)
+
+
+async def _run_arena_step(runtime: Runtime, report: object) -> None:
+    """Strategy tournament after the main cycle. Never stops the main bot."""
+    from core.models import neutral_sentiment
+
+    candles = getattr(runtime.market, "source", None)
+    if not isinstance(candles, CachedCandleSource):
+        return
+    sentiment = getattr(report, "sentiment", None) or neutral_sentiment("Arena: no sentiment this cycle.")
+    try:
+        state = await run_arena(runtime.settings, candles, sentiment, main_store=runtime.store)
+    except Exception:
+        logger.exception("Strategy tournament failed; the main account is not affected")
+        return
+    champion = state.get("champion")
+    if runtime.settings.arena_auto_select and champion and champion != getattr(runtime.market.strategy, "name", None):
+        runtime.market.strategy = build_strategy(champion)
+        logger.warning("Main account now trades the %s strategy (tournament champion).", champion)
 
 
 def _export_state(runtime: Runtime, controller: Controller, path: str) -> None:
@@ -281,7 +308,7 @@ async def amain(argv: list[str] | None = None) -> int:
         logger.info("Paper trading is ON. No real orders will be sent.")
     logger.info(
         "Strategy=%s symbols=%s timeframe=%s interval=%smin risk_per_trade=%.2f%% R:R=%.2f",
-        settings.strategy,
+        active_strategy(settings),
         ",".join(settings.symbol_list()),
         settings.timeframe,
         settings.loop_interval_minutes,
@@ -321,6 +348,9 @@ async def amain(argv: list[str] | None = None) -> int:
             quick_retry = False
             controller.wake_event.clear()
             controller.status.cycle_running = True
+            candles = getattr(runtime.market, "source", None)
+            if isinstance(candles, CachedCandleSource):
+                candles.clear()  # fresh candles every cycle
             try:
                 async with controller.cycle_lock:
                     report = await run_cycle(
@@ -334,6 +364,8 @@ async def amain(argv: list[str] | None = None) -> int:
                         stop=controller.stop_event,
                     )
                 controller.record_report(report, report.prices)
+                if settings.arena_enabled and settings.paper_trading:
+                    await _run_arena_step(runtime, report)
                 last_cycle = report.finished_at or utcnow()
                 # No prices at all (typically right after the computer wakes up and the
                 # network is not back yet): try again in a minute instead of waiting a full interval.

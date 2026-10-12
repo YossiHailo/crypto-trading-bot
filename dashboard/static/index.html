@@ -140,6 +140,11 @@ details p { margin: 6px 0 0; color: var(--text-2); font-size: 12.5px; white-spac
 /* Chart */
 .chart-box { position: relative; direction: ltr; }
 .remote { display: grid; gap: 10px; font-size: 14.5px; line-height: 1.6; }
+.arena-notes { margin-top: 12px; font-size: 14px; color: var(--text-2); line-height: 1.6; }
+.arena-notes ul { margin: 4px 0 0; padding-inline-start: 20px; }
+tr.champ td { font-weight: 600; }
+tr.out td { color: var(--muted); text-decoration: line-through; text-decoration-thickness: 1px; }
+tr.out td:last-child { text-decoration: none; }
 .remote ol { margin: 0; padding-inline-start: 22px; }
 .remote .ctrl-names { color: var(--text-2); font-size: 13.5px; }
 .legend i.dep { background: none; border-top: 2px dashed var(--muted); height: 0; }
@@ -262,6 +267,17 @@ footer { max-width: 1180px; margin: 0 auto; padding: 0 16px 28px; color: var(--m
     <h2 data-i18n="thinkTitle"></h2>
     <p class="lead" id="thinkLead"></p>
     <div class="think" id="think"></div>
+  </section>
+
+  <section class="card" id="arenaCard" hidden>
+    <h2><span data-i18n="arenaTitle"></span> <span class="chip info" id="arenaChampion"></span></h2>
+    <p class="lead" id="arenaLead"></p>
+    <div class="table-wrap"><table>
+      <thead><tr><th data-i18n="arPlace"></th><th data-i18n="arStrategy"></th><th data-i18n="arValue"></th><th data-i18n="arProfit"></th><th data-i18n="arTrades"></th><th data-i18n="arStatus"></th></tr></thead>
+      <tbody id="arenaRows"></tbody>
+    </table></div>
+    <div id="arenaHistory" class="arena-notes"></div>
+    <div id="arenaResearch" class="arena-notes"></div>
   </section>
 
   <div class="two">
@@ -431,6 +447,16 @@ footer { max-width: 1180px; margin: 0 auto; padding: 0 16px 28px; color: var(--m
       ctrlLeadStatic: "הבוט רץ בענן, אז הכפתורים נמצאים ב-GitHub. ברוב הימים לא צריך לגעת בכלום.",
       remoteSteps: (url) => `<ol><li>פתח את <a href="${url}" target="_blank" rel="noopener">דף הבוט ב-GitHub Actions</a>.</li><li>לחץ <b>Run workflow</b>.</li><li>בחר פעולה ולחץ שוב <b>Run workflow</b>. תוך דקה-שתיים הדף כאן יתעדכן.</li></ol>`,
       reportsLink: "הדוחות היומיים (דוח לכל יום)",
+      arenaTitle: "תחרות השיטות",
+      arenaLead: (elim, margin, trades) => `כל שיטה סוחרת בחשבון וירטואלי משלה עם אותו כסף, אותם מטבעות ואותם כללי סיכון. החשבון הראשי עובד עם השיטה המובילה. פעם ביום הבוט בודק: שיטה אחרת תחליף אותה רק אם היא מקדימה אותה ב-${margin} לפחות ויש לה ${trades} עסקאות סגורות לפחות. שיטה שמפסידה ${elim} מהכסף שקיבלה מודחת.`,
+      arenaChampion: (name) => `אלופה: ${name}`,
+      arPlace: "מקום", arStrategy: "שיטה", arValue: "שווי", arProfit: "רווח אמיתי", arTrades: "עסקאות (ברווח)", arStatus: "מצב",
+      arActive: "פעילה", arOut: "הודחה", arChamp: "האלופה – החשבון הראשי עובד איתה",
+      arHistory: "החלפות שיטה אחרונות:",
+      arResearch: (from, to) => `בבדיקה היסטורית (${from} עד ${to}) על כל המטבעות, לפי תשואה ביחס לסיכון:`,
+      arResearchRow: (name, ret, dd, trades) => `${name}: תשואה ממוצעת ${ret}, ירידה מקסימלית ${dd}, ${trades} עסקאות`,
+      arResearchLink: "לדוח הבדיקה המלא",
+      arNoResearch: "הבדיקה ההיסטורית (3 שנים) עוד לא רצה. היא רצה אוטומטית בריצה הבאה ולוקחת כ-10 דקות.",
       remoteNames: "הפעולות: pause = השהה קניות · resume = חדש קניות · close-all = מכור הכול · reset-halt = שחרר עצירת חירום · none = בדוק עכשיו.",
       remoteStop: "כדי לעצור את הבוט לגמרי: בדף הבוט ב-GitHub Actions לוחצים על ⋯ ואז Disable workflow.",
       heroOfflineStatic: "לא הצלחתי לטעון את הנתונים", heroOfflineStaticText: "ייתכן שהבוט עוד לא רץ אף פעם, או שיש תקלה זמנית ב-GitHub. נסה לרענן בעוד כמה דקות.",
@@ -465,7 +491,7 @@ footer { max-width: 1180px; margin: 0 auto; padding: 0 16px 28px; color: var(--m
         ["max_drawdown_pct", "עצירת חירום", (v, f) => `ירידה של ${f.pct(v, 0)} מהשיא`],
         ["allow_short", "מכירה בחסר", (v) => v ? "מופעלת" : "כבויה"],
         ["exchange", "בורסה", (v) => v],
-        ["strategy", "שיטה", (v) => v === "trend" ? "מעקב מגמה" : "השיטה הישנה"]
+        ["strategy", "שיטה", (v) => stratName(v)]
       ],
       help: [
         ["מה רואים למעלה?", "הפס הצבעוני אומר במשפט אחד אם הכול בסדר. ירוק: תקין. צהוב: שווה להסתכל. אדום: צריך לטפל."],
@@ -474,6 +500,7 @@ footer { max-width: 1180px; margin: 0 auto; padding: 0 16px 28px; color: var(--m
         ["מה הבוט חושב", "לכל מטבע כתוב בעברית פשוטה מה הבוט רואה ומה צריך לקרות כדי שיקנה. רוב הזמן התשובה היא \"ממתין\", וזה תקין."],
         ["היומן", "כל קנייה ומכירה, עם הסיבה. אפשר לסמן כדי לראות גם את הבדיקות שבהן הבוט החליט לחכות."],
         ["מתי ללחוץ על כפתורים?", "כמעט אף פעם. \"השהה\" עוצר קניות חדשות. \"מכור הכול\" ו\"עצור את הבוט\" הם לחירום בלבד, ויבקשו אישור."],
+        ["תחרות השיטות", "הבוט מריץ במקביל כמה שיטות מסחר, כל אחת עם חשבון וירטואלי משלה. החשבון הראשי עובד עם השיטה המובילה, ושיטה שמפסידה יותר מדי מודחת. הטבלה מראה מי מובילה."],
         ["הפקדות חודשיות", "כל חודש נוספים לחשבון כמה דולרים, כמו העברה בנקאית מהחשבון שלך לארנק. הפקדה היא לא רווח: הרווח האמיתי הוא שווי החשבון פחות כל מה שהפקדת, וההפקדה גם לא נספרת כ\"רווח של היום\"."],
         ["מילים שכדאי להכיר", "סטופ: מחיר שבו מוכרים כדי להגביל הפסד. יעד: מחיר שבו מוכרים כדי לממש רווח. מגמה עולה: המחיר עולה כבר כמה שבועות. USDT: מטבע דיגיטלי ששווה דולר, ולכן מוצג כאן כ-$."]
       ],
@@ -492,6 +519,8 @@ footer { max-width: 1180px; margin: 0 auto; padding: 0 16px 28px; color: var(--m
         [/^Close-all \(remote control\): (\d+)/, (m) => `מכרת הכול דרך GitHub: נסגרו ${m[1]} עסקאות.`],
         [/^Monthly deposit \+([\d.]+) \S+ \(simulated bank transfer due (\S+)\)\. Total deposited: ([\d.]+)/, (m, f) => `הפקדה חודשית: ${f.money(+m[1])} הועברו "מהבנק" לחשבון (מועד ${m[2]}). סך הכול הופקד: ${f.money(+m[3])}.`],
         [/^Downtime: no checks from (\S+) to (\S+) \((\d+) min\)/, (m, f) => `הבוט לא רץ ${m[3]} דקות (מ-${f.when(m[1])} עד ${f.when(m[2])}).`],
+        [/^Arena: strategy (\S+) eliminated/, (m) => `תחרות השיטות: השיטה "${stratName(m[1])}" הודחה כי הפסידה יותר מדי מהכסף שקיבלה.`],
+        [/^Arena: the main account switches strategy from (\S+) to (\S+)\./, (m) => `החשבון הראשי עבר משיטת "${stratName(m[1])}" לשיטת "${stratName(m[2])}".`],
         [/^KILL SWITCH/, () => "עצירת חירום הופעלה: החשבון ירד יותר מדי מהשיא."],
         [/market data failed/, (m, f, raw) => `לא הצלחתי לקבל מחירים עבור ${f.coinName(raw.split(":")[0])}. אנסה שוב בבדיקה הבאה.`],
         [/^Startup:/, (m, f, raw) => `בדיקת התחלה: ${raw.replace(/^Startup:\s*/, "")}`]
@@ -590,6 +619,16 @@ footer { max-width: 1180px; margin: 0 auto; padding: 0 16px 28px; color: var(--m
       ctrlLeadStatic: "The bot runs in the cloud, so the buttons live on GitHub. Most days you do not need them.",
       remoteSteps: (url) => `<ol><li>Open <a href="${url}" target="_blank" rel="noopener">the bot's GitHub Actions page</a>.</li><li>Click <b>Run workflow</b>.</li><li>Pick an action and click <b>Run workflow</b> again. This page updates within a minute or two.</li></ol>`,
       reportsLink: "Daily reports (one per day, in Hebrew)",
+      arenaTitle: "Strategy tournament",
+      arenaLead: (elim, margin, trades) => `Each strategy trades its own virtual account with the same money, coins and risk rules. The main account trades the leader. Once a day another strategy replaces it only if it is ahead by at least ${margin} with at least ${trades} closed trades. A strategy that loses ${elim} of its money is eliminated.`,
+      arenaChampion: (name) => `Champion: ${name}`,
+      arPlace: "#", arStrategy: "Strategy", arValue: "Value", arProfit: "True profit", arTrades: "Trades (won)", arStatus: "Status",
+      arActive: "Active", arOut: "Eliminated", arChamp: "Champion – the main account uses it",
+      arHistory: "Recent strategy switches:",
+      arResearch: (from, to) => `Historical test (${from} to ${to}) on all coins, ranked by return per unit of risk:`,
+      arResearchRow: (name, ret, dd, trades) => `${name}: average return ${ret}, max drawdown ${dd}, ${trades} trades`,
+      arResearchLink: "Full test report",
+      arNoResearch: "The 3-year historical test has not run yet. It runs automatically on the next run and takes about 10 minutes.",
       remoteNames: "Actions: pause · resume · close-all (sell everything) · reset-halt (release emergency stop) · none (check now).",
       remoteStop: "To stop the bot completely: on its GitHub Actions page click ⋯ then Disable workflow.",
       heroOfflineStatic: "Could not load the data", heroOfflineStaticText: "The bot may not have run yet, or GitHub has a temporary problem. Try again in a few minutes.",
@@ -624,7 +663,7 @@ footer { max-width: 1180px; margin: 0 auto; padding: 0 16px 28px; color: var(--m
         ["max_drawdown_pct", "Emergency stop", (v, f) => `${f.pct(v, 0)} below the peak`],
         ["allow_short", "Short selling", (v) => v ? "On" : "Off"],
         ["exchange", "Exchange", (v) => v],
-        ["strategy", "Method", (v) => v === "trend" ? "Trend following" : "Legacy"]
+        ["strategy", "Method", (v) => stratName(v)]
       ],
       help: [
         ["The top bar", "One sentence on whether everything is fine. Green: fine. Yellow: worth a look. Red: needs action."],
@@ -730,6 +769,13 @@ footer { max-width: 1180px; margin: 0 auto; padding: 0 16px 28px; color: var(--m
   const tf = (v) => t("tfLabel")(v);
   const reason = (r) => t("reasons")[r] || r;
   const F = { money, price, pct, coinName, tf, reason, when };
+  const STRATS = {
+    trend: { he: "מעקב מגמה", en: "Trend following" }, trend_fast: { he: "מעקב מגמה מהיר", en: "Fast trend following" },
+    ema_cross: { he: "חציית ממוצעים", en: "Moving-average cross" }, rsi_dip: { he: "קנייה בירידה זמנית", en: "Buy the dip (RSI)" },
+    bb_squeeze: { he: "פריצה אחרי שקט", en: "Breakout after a quiet period" }, macd_trend: { he: "מומנטום MACD", en: "MACD momentum" },
+    legacy: { he: "השיטה המקורית", en: "Original mix" }
+  };
+  function stratName(v) { return (STRATS[v] && STRATS[v][lang]) || v || "—"; }
 
   function meter(id, frac, kind) {
     const el = $(id);
@@ -846,6 +892,7 @@ footer { max-width: 1180px; margin: 0 auto; padding: 0 16px 28px; color: var(--m
     renderTrades(s);
     renderEvents(s);
     renderConfig(cfg);
+    renderArena(s);
     renderChart(s.equity, a.baseline, s.deposits);
     document.querySelectorAll("details[data-key]").forEach((d) => { if (open.has(d.dataset.key)) d.open = true; });
   }
@@ -974,6 +1021,35 @@ footer { max-width: 1180px; margin: 0 auto; padding: 0 16px 28px; color: var(--m
     $("events").innerHTML = rows.length ? rows.map((e) =>
       `<li><span class="dot ${esc(e.level)}" aria-hidden="true"></span><div><div class="when" style="color:var(--muted);font-size:12.5px">${esc(when(e.ts))}</div><div dir="auto">${esc(translateEvent(e.message))}</div></div></li>`
     ).join("") : `<li><div class="empty" style="width:100%">${esc(t("eventsNone"))}</div></li>`;
+  }
+
+  function renderArena(s) {
+    const ar = s.arena;
+    $("arenaCard").hidden = !(ar && ar.standings && ar.standings.length);
+    if ($("arenaCard").hidden) return;
+    const r = ar.rules || {};
+    $("arenaLead").textContent = t("arenaLead")(pct(r.eliminate_loss_pct ?? 0.1, 0), pct(r.switch_margin ?? 0.02, 0), r.min_trades ?? 3);
+    $("arenaChampion").textContent = t("arenaChampion")(stratName(ar.champion));
+    $("arenaRows").innerHTML = ar.standings.map((x, i) => {
+      const out = x.status !== "active";
+      const status = out ? t("arOut") : x.champion ? t("arChamp") : t("arActive");
+      return `<tr class="${x.champion ? "champ" : ""} ${out ? "out" : ""}">
+        <td>${i + 1}</td><td>${esc(stratName(x.strategy))}</td>
+        <td class="num">${esc(money(x.equity, 0))}</td>
+        <td class="num ${cls(x.true_profit)}">${esc(signedMoney(x.true_profit))} (${esc(signedPct(x.true_profit_pct, 2))})</td>
+        <td class="num">${esc(x.trades)} (${esc(x.wins)})</td>
+        <td><span class="chip ${x.champion ? "good" : out ? "bad" : ""}">${esc(status)}</span></td></tr>`;
+    }).join("");
+    const hist = (ar.history || []).filter((h) => h.from).slice(-5).reverse();
+    $("arenaHistory").innerHTML = hist.length ? `${esc(t("arHistory"))}<ul>${hist.map((h) =>
+      `<li>${esc(when(h.at))}: ${esc(stratName(h.from))} ← ${esc(stratName(h.to))}${lang === "en" && h.reason ? ". " + esc(h.reason) : ""}</li>`).join("")}</ul>` : "";
+    const rs = ar.research;
+    if (rs && rs.ranking && rs.ranking.length) {
+      const rows = rs.ranking.slice(0, 7).map((x) => `<li>${t("arResearchRow")(esc(stratName(x.strategy)), w(signedPct(x.avg_return || 0, 1)), w(pct(x.avg_max_drawdown || 0, 1)), w(x.trades))}</li>`).join("");
+      $("arenaResearch").innerHTML = `${esc(t("arResearch")(rs.period?.from || "", rs.period?.to || ""))}<ul>${rows}</ul><a href="research/" target="_blank" rel="noopener">${esc(t("arResearchLink"))}</a>`;
+    } else {
+      $("arenaResearch").textContent = t("arNoResearch");
+    }
   }
 
   function renderConfig(cfg) {

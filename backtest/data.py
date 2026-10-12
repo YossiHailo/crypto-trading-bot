@@ -55,6 +55,7 @@ async def download_ohlcv(
     *,
     cache_dir: str | Path = "data/history",
     market_type: str = "spot",
+    api_url: str = "",
 ) -> list[list[float]]:
     """Fetch closed candles in [since, until), reusing and extending the CSV cache."""
     import ccxt.async_support as ccxt_async
@@ -67,6 +68,11 @@ async def download_ohlcv(
     if cached and int(cached[0][0]) <= since_ms:
         need_start = int(cached[-1][0]) + step
     exchange = getattr(ccxt_async, exchange_id)({"enableRateLimit": True, "options": {"defaultType": market_type}})
+    if api_url:
+        # Same override as the live bot (e.g. Binance's public data mirror for cloud machines).
+        from core.exchange import apply_public_url
+
+        apply_public_url(exchange, api_url)
     fetched: list[list[float]] = []
     try:
         cursor = need_start

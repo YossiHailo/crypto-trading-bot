@@ -99,7 +99,7 @@ def open_copy(db: Path) -> sqlite3.Connection:
     return conn
 
 
-def build(conn: sqlite3.Connection, day: date, tzname: str, interval_min: float, now: datetime) -> dict:
+def build(conn: sqlite3.Connection, day: date, tzname: str, interval_min: float, now: datetime, arena: dict | None = None) -> dict:
     tz = _tz(tzname)
     start_local = datetime.combine(day, datetime.min.time(), tz)
     end_local = start_local + timedelta(days=1)
@@ -270,6 +270,29 @@ def build(conn: sqlite3.Connection, day: date, tzname: str, interval_min: float,
         "warnings": warnings[-40:],
         "warning_count": len(warnings),
         "cumulative": cumulative,
+        "arena": _arena_summary(arena, a, b),
+    }
+
+
+def _in_window(stamp: object, a: str, b: str) -> bool:
+    try:
+        return _parse(a) <= _parse(str(stamp)) < _parse(b)
+    except (TypeError, ValueError):
+        return False
+
+
+def _arena_summary(arena: dict | None, a: str, b: str) -> dict | None:
+    """Strategy tournament standings plus the champion switches made during the day."""
+    if not arena:
+        return None
+    return {
+        "champion": arena.get("champion"),
+        "standings": [
+            {k: row.get(k) for k in ("strategy", "label_he", "status", "equity", "deposits", "true_profit", "true_profit_pct", "trades", "wins", "champion")}
+            for row in arena.get("standings", [])
+        ],
+        "switches_today": [h for h in arena.get("history", []) if _in_window(h.get("at"), a, b)],
+        "eliminated": [row.get("strategy") for row in arena.get("standings", []) if row.get("status") == "eliminated"],
     }
 
 
@@ -306,6 +329,18 @@ def to_markdown(r: dict) -> str:
         lines += ["", "## השבתות", ""] + [f"- {g['from']} → {g['to']} ({g['minutes']} דק')" for g in up["gaps"]]
     if r["warnings"]:
         lines += ["", "## אזהרות", ""] + [f"- {w['ts']}: {w['message']}" for w in r["warnings"][-15:]]
+    arena = r.get("arena")
+    if arena and arena.get("standings"):
+        names = {"active": "פעילה", "eliminated": "הודחה"}
+        lines += ["", "## תחרות השיטות", "", f"השיטה שהחשבון הראשי עובד איתה: **{arena.get('champion')}**.", "",
+                  "| מקום | שיטה | שווי | רווח אמיתי | עסקאות | מצב |", "| --- | --- | --- | --- | --- | --- |"]
+        for place, row in enumerate(arena["standings"], 1):
+            mark = " (אלופה)" if row.get("champion") else ""
+            pct = row.get("true_profit_pct") or 0.0
+            lines.append(f"| {place} | {row.get('label_he') or row.get('strategy')}{mark} | {_money(row.get('equity'))} | "
+                         f"{_money(row.get('true_profit'))} ({pct * 100:+.2f}%) | {row.get('trades')} | {names.get(row.get('status'), row.get('status'))} |")
+        for h in arena.get("switches_today", []):
+            lines.append(f"- החלפת שיטה: {h.get('from') or '—'} ← {h.get('to')}. {h.get('reason', '')}")
     c = r["cumulative"]
     lines += ["", f"מצטבר: {c['days_running']} ימים, {c['trades']} עסקאות, {c['wins']} ברווח, {_money(c['pnl'])}."]
     return "\n".join(lines) + "\n"
@@ -398,7 +433,12 @@ def main(argv: list[str] | None = None) -> int:
     if not db.exists():
         print(f"Database not found: {db}", file=sys.stderr)
         return 1
-    report = build(open_copy(db), day, args.tz, args.interval, now)
+    arena = None
+    try:
+        arena = json.loads((db.parent / "arena" / "arena.json").read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        arena = None
+    report = build(open_copy(db), day, args.tz, args.interval, now, arena)
     out = Path(args.out)
     try:
         out.mkdir(parents=True, exist_ok=True)

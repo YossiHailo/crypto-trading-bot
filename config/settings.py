@@ -18,10 +18,18 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from core.errors import LiveTradingNotConfirmedError
 
-STRATEGIES = {"trend", "legacy"}
+STRATEGIES = {"trend", "trend_fast", "ema_cross", "rsi_dip", "bb_squeeze", "macd_trend", "legacy"}
 # Bars each strategy needs before it can score (kept here so settings can
 # reject an OHLCV_LIMIT that would silently produce HOLD forever).
-STRATEGY_MIN_BARS = {"trend": 210, "legacy": 59}
+STRATEGY_MIN_BARS = {
+    "trend": 210,
+    "trend_fast": 110,
+    "ema_cross": 210,
+    "rsi_dip": 210,
+    "bb_squeeze": 150,
+    "macd_trend": 210,
+    "legacy": 59,
+}
 
 
 def _split_csv(value: str) -> list[str]:
@@ -104,6 +112,20 @@ class Settings(BaseSettings):
     market_data_url: str = ""
     market_data_fallback: str = ""
     pending_order_ttl_minutes: float = 60
+
+    # Strategy tournament (paper only). Every strategy in ARENA_STRATEGIES trades
+    # its own virtual account with the same money, coins and risk rules as the
+    # main account. With ARENA_AUTO_SELECT the main account trades the current
+    # champion; a challenger replaces it only after a daily review where it leads
+    # by ARENA_SWITCH_MARGIN with at least ARENA_MIN_TRADES closed trades. A
+    # strategy whose true loss reaches ARENA_ELIMINATE_LOSS_PCT of the money it
+    # was given is eliminated (its positions are closed and it stops trading).
+    arena_enabled: bool = False
+    arena_strategies: str = ""
+    arena_auto_select: bool = False
+    arena_eliminate_loss_pct: float = 0.10
+    arena_min_trades: int = 3
+    arena_switch_margin: float = 0.02
 
     telegram_bot_token: str = ""
     telegram_chat_id: str = ""
@@ -303,6 +325,21 @@ class Settings(BaseSettings):
             raise ValueError("DEPOSIT_DAY must be 1-31 (short months use their last day)")
         return value
 
+    @field_validator("arena_strategies")
+    @classmethod
+    def _arena_strategies(cls, value: str) -> str:
+        unknown = [name for name in _split_csv(value.lower()) if name not in STRATEGIES]
+        if unknown:
+            raise ValueError(f"ARENA_STRATEGIES has unknown names {unknown}; use {sorted(STRATEGIES)}")
+        return value
+
+    @field_validator("arena_eliminate_loss_pct", "arena_switch_margin")
+    @classmethod
+    def _arena_fraction(cls, value: float) -> float:
+        if not 0 < value < 1:
+            raise ValueError("must be a fraction between 0 and 1")
+        return value
+
     @field_validator("market_data_fallback")
     @classmethod
     def _fallback(cls, value: str) -> str:
@@ -349,6 +386,8 @@ class Settings(BaseSettings):
                 f"STRATEGY={self.strategy} needs OHLCV_LIMIT >= {need} "
                 "(indicator warm-up plus the dropped unclosed candle)"
             )
+        if self.arena_enabled and not self.paper_trading:
+            raise ValueError("ARENA_ENABLED is a paper-trading tournament. Turn it off for live trading.")
         if self.monthly_deposit and not self.paper_trading:
             raise ValueError("MONTHLY_DEPOSIT is a paper-trading simulation. In live mode deposit real money on the exchange.")
         if self.market_type == "spot" and self.leverage != 1:
@@ -362,6 +401,10 @@ class Settings(BaseSettings):
 
     def symbol_list(self) -> list[str]:
         return _split_csv(self.symbols)
+
+    def arena_list(self) -> list[str]:
+        names = [name.lower() for name in _split_csv(self.arena_strategies)]
+        return names or sorted(STRATEGIES, key=lambda n: (n != "trend", n))
 
     def rss_feed_list(self) -> list[str]:
         return _split_csv(self.rss_feeds)
@@ -407,6 +450,9 @@ class Settings(BaseSettings):
             "starting_balance": self.starting_balance,
             "monthly_deposit": self.monthly_deposit,
             "deposit_day": self.deposit_day,
+            "arena_enabled": self.arena_enabled and self.paper_trading,
+            "arena_auto_select": self.arena_auto_select,
+            "arena_eliminate_loss_pct": self.arena_eliminate_loss_pct,
             "cooldown_minutes": self.cooldown_minutes,
         }
 

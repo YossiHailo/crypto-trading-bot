@@ -4,9 +4,11 @@
 set -euo pipefail
 TZNAME="${REPORT_TZ:-Asia/Jerusalem}"
 INTERVAL="${LOOP_INTERVAL_MINUTES:-15}"
+# Fold each database's write-ahead log into the database file before saving it.
+for db in state/data/portfolio.sqlite state/data/arena/*.sqlite; do
+  [ -f "$db" ] && python -c "import sqlite3, sys; c = sqlite3.connect(sys.argv[1]); c.execute('PRAGMA wal_checkpoint(TRUNCATE)'); c.close()" "$db"
+done
 if [ -f state/data/portfolio.sqlite ]; then
-  # Fold the write-ahead log into the database file before saving it.
-  python -c "import sqlite3; c = sqlite3.connect('state/data/portfolio.sqlite'); c.execute('PRAGMA wal_checkpoint(TRUNCATE)'); c.close()"
   today=$(TZ="$TZNAME" date +%F)
   yesterday=$(TZ="$TZNAME" date -d yesterday +%F)
   python scripts/daily_report.py --db state/data/portfolio.sqlite --out state/reports/daily --tz "$TZNAME" --interval "$INTERVAL" --date "$yesterday" > /dev/null || true
