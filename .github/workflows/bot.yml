@@ -25,10 +25,10 @@ on:
   workflow_dispatch:
     inputs:
       action:
-        description: "Action (none = just run a check now)"
+        description: "Action (none = just run a check now; research = rerun the 3-year strategy test)"
         type: choice
         default: none
-        options: [none, pause, resume, close-all, reset-halt]
+        options: [none, pause, resume, close-all, reset-halt, research]
       chain:
         description: "Internal: set by the bot when it starts its own next run. Leave unticked."
         type: boolean
@@ -57,7 +57,7 @@ env:
   # Binance's public data mirror; api.binance.com refuses US cloud machines (HTTP 451).
   MARKET_DATA_URL: https://data-api.binance.vision/api/v3
   MARKET_DATA_FALLBACK: kraken
-  SYMBOLS: BTC/USDT,ETH/USDT
+  SYMBOLS: BTC/USDT,ETH/USDT,SOL/USDT,BNB/USDT,XRP/USDT
   TIMEFRAME: 4h
   OHLCV_LIMIT: "300"
   LOOP_INTERVAL_MINUTES: "15"
@@ -82,11 +82,20 @@ env:
   SLIPPAGE_PCT: "0.0005"
   MIN_NOTIONAL: "10"
   QUOTE_CURRENCY: USDT
+  # ---- strategy tournament ----
+  # Every strategy trades its own virtual $1,000 (+ the same monthly deposits).
+  # The main account trades the champion; a strategy that loses 10% of its
+  # money is eliminated. See core/arena.py for the exact rules.
+  ARENA_ENABLED: "true"
+  ARENA_AUTO_SELECT: "true"
+  ARENA_ELIMINATE_LOSS_PCT: "0.10"
+  ARENA_SWITCH_MARGIN: "0.02"
+  ARENA_MIN_TRADES: "3"
   # ---- runtime ----
   DASHBOARD_ENABLED: "false"
   DATA_DIR: state/data
   LOG_DIR: state/logs
-  DECISIONS_RETENTION_DAYS: "90"
+  DECISIONS_RETENTION_DAYS: "35"
   LOG_LEVEL: INFO
   REPORT_TZ: Asia/Jerusalem
   # Optional phone alerts: add these as repository secrets (Settings -> Secrets -> Actions).
