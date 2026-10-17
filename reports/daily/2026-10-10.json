@@ -1,0 +1,81 @@
+{
+  "date": "2026-10-10",
+  "timezone": "Asia/Jerusalem",
+  "window": {
+    "from_utc": "2026-10-09T21:00:00+00:00",
+    "to_utc": "2026-10-10T21:00:00+00:00",
+    "complete_day": true
+  },
+  "uptime": {
+    "checks_ran": 0,
+    "checks_expected": 96,
+    "coverage_pct": 0.0,
+    "downtime_minutes": 1440,
+    "gaps": [
+      {
+        "from": "2026-10-09T21:00:00+00:00",
+        "to": "2026-10-10T21:00:00+00:00",
+        "minutes": 1440,
+        "ongoing": true
+      }
+    ],
+    "last_check": "2026-10-11T20:45:04.026779+00:00"
+  },
+  "account": {
+    "start": null,
+    "end": null,
+    "deposited_today": 0,
+    "deposited_total": 1000.0,
+    "change": null,
+    "change_pct": null,
+    "low": null,
+    "high": null,
+    "baseline": 1000.0,
+    "since_start": null,
+    "since_start_pct": null,
+    "drawdown_from_peak_pct": null,
+    "cash_end": null,
+    "paused": false,
+    "halted_reason": null
+  },
+  "trades": {
+    "opened": 0,
+    "closed": 0,
+    "wins": 0,
+    "pnl": 0,
+    "closed_list": [],
+    "opened_list": [],
+    "open_at_end": [
+      {
+        "symbol": "BTC/USDT",
+        "side": "long",
+        "size": 0.00596189,
+        "entry": 83907.93299999999,
+        "stop_loss": 82452.83094255303,
+        "take_profit": 88273.23917234085,
+        "opened_at": "2026-10-11T18:36:44.486704+00:00",
+        "exchange_protected": 1
+      }
+    ]
+  },
+  "decisions": {
+    "total": 0,
+    "by_reason": {}
+  },
+  "coins": {},
+  "sentiment": {
+    "min": null,
+    "max": null,
+    "avg": null
+  },
+  "warnings": [],
+  "warning_count": 0,
+  "cumulative": {
+    "running_since": "2026-10-11T13:07:23.586653+00:00",
+    "days_running": -0.7,
+    "trades": 0,
+    "wins": 0,
+    "pnl": 0,
+    "checks_total": 0
+  }
+}
