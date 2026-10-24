@@ -1,0 +1,654 @@
+{
+ "contenders": {
+  "trend": {
+   "status": "active",
+   "since": "2026-10-12T10:05:09.059171+00:00"
+  },
+  "bb_squeeze": {
+   "status": "active",
+   "since": "2026-10-12T10:05:09.059171+00:00"
+  },
+  "ema_cross": {
+   "status": "active",
+   "since": "2026-10-12T10:05:09.059171+00:00"
+  },
+  "legacy": {
+   "status": "active",
+   "since": "2026-10-12T10:05:09.059171+00:00"
+  },
+  "macd_trend": {
+   "status": "active",
+   "since": "2026-10-12T10:05:09.059171+00:00"
+  },
+  "rsi_dip": {
+   "status": "active",
+   "since": "2026-10-12T10:05:09.059171+00:00"
+  },
+  "trend_fast": {
+   "status": "active",
+   "since": "2026-10-12T10:05:09.059171+00:00"
+  }
+ },
+ "history": [
+  {
+   "at": "2026-10-12T10:05:09.059171+00:00",
+   "to": "trend",
+   "reason": "first champion (best in the 3-year backtest)"
+  }
+ ],
+ "champion_since": "2026-10-12T10:05:09.059171+00:00",
+ "last_review": "2026-10-24",
+ "champion": "trend",
+ "updated_at": "2026-10-24T20:45:04.830960+00:00",
+ "standings": [
+  {
+   "strategy": "rsi_dip",
+   "label_he": "קנייה בירידה זמנית",
+   "label_en": "Buy the dip (RSI)",
+   "status": "active",
+   "equity": 1000.0,
+   "deposits": 1000.0,
+   "true_profit": 0.0,
+   "true_profit_pct": 0.0,
+   "trades": 0,
+   "wins": 0,
+   "realized_pnl": 0.0,
+   "open_positions": [],
+   "exposure_pct": 0.0,
+   "champion": false
+  },
+  {
+   "strategy": "trend_fast",
+   "label_he": "מעקב מגמה מהיר",
+   "label_en": "Fast trend following",
+   "status": "active",
+   "equity": 1000.0,
+   "deposits": 1000.0,
+   "true_profit": 0.0,
+   "true_profit_pct": 0.0,
+   "trades": 0,
+   "wins": 0,
+   "realized_pnl": 0.0,
+   "open_positions": [],
+   "exposure_pct": 0.0,
+   "champion": false
+  },
+  {
+   "strategy": "macd_trend",
+   "label_he": "מומנטום MACD",
+   "label_en": "MACD momentum",
+   "status": "active",
+   "equity": 993.42,
+   "deposits": 1000.0,
+   "true_profit": -6.58,
+   "true_profit_pct": -0.006579119762545474,
+   "trades": 1,
+   "wins": 0,
+   "realized_pnl": -6.58,
+   "open_positions": [],
+   "exposure_pct": 0.0,
+   "champion": false
+  },
+  {
+   "strategy": "bb_squeeze",
+   "label_he": "פריצה אחרי שקט",
+   "label_en": "Breakout after a quiet period",
+   "status": "active",
+   "equity": 991.82,
+   "deposits": 1000.0,
+   "true_profit": -8.18,
+   "true_profit_pct": -0.008183310853196986,
+   "trades": 1,
+   "wins": 0,
+   "realized_pnl": -8.18,
+   "open_positions": [],
+   "exposure_pct": 0.0,
+   "champion": false
+  },
+  {
+   "strategy": "trend",
+   "label_he": "מעקב מגמה",
+   "label_en": "Trend following",
+   "status": "active",
+   "equity": 989.52,
+   "deposits": 1000.0,
+   "true_profit": -10.48,
+   "true_profit_pct": -0.010478939036761175,
+   "trades": 1,
+   "wins": 0,
+   "realized_pnl": -10.48,
+   "open_positions": [],
+   "exposure_pct": 0.0,
+   "champion": true
+  },
+  {
+   "strategy": "ema_cross",
+   "label_he": "חציית ממוצעים",
+   "label_en": "Moving-average cross",
+   "status": "active",
+   "equity": 977.75,
+   "deposits": 1000.0,
+   "true_profit": -22.25,
+   "true_profit_pct": -0.02224892909510095,
+   "trades": 2,
+   "wins": 0,
+   "realized_pnl": -22.25,
+   "open_positions": [],
+   "exposure_pct": 0.0,
+   "champion": false
+  },
+  {
+   "strategy": "legacy",
+   "label_he": "השיטה המקורית",
+   "label_en": "Original mix",
+   "status": "active",
+   "equity": 965.48,
+   "deposits": 1000.0,
+   "true_profit": -34.52,
+   "true_profit_pct": -0.03451657814298801,
+   "trades": 4,
+   "wins": 0,
+   "realized_pnl": -32.67,
+   "open_positions": [
+    {
+     "symbol": "BNB/USDT",
+     "entry": 734.80722,
+     "size": 0.54807544
+    }
+   ],
+   "exposure_pct": 0.41563053887861595,
+   "champion": false
+  }
+ ],
+ "rules": {
+  "eliminate_loss_pct": 0.1,
+  "switch_margin": 0.02,
+  "min_trades": 3,
+  "auto_select": true
+ },
+ "research": {
+  "generated_at": "2026-10-12T10:05:04.480365+00:00",
+  "period": {
+   "from": "2023-10-13",
+   "to": "2026-10-12"
+  },
+  "ranking": [
+   {
+    "strategy": "trend",
+    "label_he": "מעקב מגמה",
+    "label_en": "Trend following",
+    "avg_return": 0.156977,
+    "avg_cagr": 0.049267,
+    "avg_max_drawdown": 0.110677,
+    "avg_sharpe": 0.745748,
+    "trades": 363,
+    "avg_win_rate": 0.347148,
+    "coins_beating_hold": 0,
+    "coins": 5,
+    "avg_random_percentile": 95.333333,
+    "enough_trades": true,
+    "per_symbol": {
+     "BTC/USDT": {
+      "total_return": 0.164831,
+      "cagr": 0.052142,
+      "max_drawdown": 0.089097,
+      "sharpe": 0.763903,
+      "trades": 74,
+      "win_rate": 0.391892,
+      "beats_hold": false,
+      "random_percentile": 96.666667
+     },
+     "ETH/USDT": {
+      "total_return": 0.178276,
+      "cagr": 0.056172,
+      "max_drawdown": 0.108245,
+      "sharpe": 0.829136,
+      "trades": 74,
+      "win_rate": 0.351351,
+      "beats_hold": false,
+      "random_percentile": 100.0
+     },
+     "SOL/USDT": {
+      "total_return": 0.259382,
+      "cagr": 0.079855,
+      "max_drawdown": 0.065549,
+      "sharpe": 1.267451,
+      "trades": 70,
+      "win_rate": 0.357143,
+      "beats_hold": false,
+      "random_percentile": 100.0
+     },
+     "BNB/USDT": {
+      "total_return": 0.157124,
+      "cagr": 0.049817,
+      "max_drawdown": 0.154604,
+      "sharpe": 0.706726,
+      "trades": 90,
+      "win_rate": 0.344444,
+      "beats_hold": false,
+      "random_percentile": 100.0
+     },
+     "XRP/USDT": {
+      "total_return": 0.025274,
+      "cagr": 0.008349,
+      "max_drawdown": 0.13589,
+      "sharpe": 0.161523,
+      "trades": 55,
+      "win_rate": 0.290909,
+      "beats_hold": false,
+      "random_percentile": 80.0
+     }
+    },
+    "place": 1
+   },
+   {
+    "strategy": "trend_fast",
+    "label_he": "מעקב מגמה מהיר",
+    "label_en": "Fast trend following",
+    "avg_return": 0.133752,
+    "avg_cagr": 0.042561,
+    "avg_max_drawdown": 0.111607,
+    "avg_sharpe": 0.623354,
+    "trades": 567,
+    "avg_win_rate": 0.347819,
+    "coins_beating_hold": 0,
+    "coins": 5,
+    "avg_random_percentile": 94.0,
+    "enough_trades": true,
+    "per_symbol": {
+     "BTC/USDT": {
+      "total_return": 0.093361,
+      "cagr": 0.030181,
+      "max_drawdown": 0.118086,
+      "sharpe": 0.43378,
+      "trades": 121,
+      "win_rate": 0.322314,
+      "beats_hold": false,
+      "random_percentile": 96.666667
+     },
+     "ETH/USDT": {
+      "total_return": 0.130385,
+      "cagr": 0.041673,
+      "max_drawdown": 0.087293,
+      "sharpe": 0.60105,
+      "trades": 109,
+      "win_rate": 0.33945,
+      "beats_hold": false,
+      "random_percentile": 93.333333
+     },
+     "SOL/USDT": {
+      "total_return": 0.202839,
+      "cagr": 0.063456,
+      "max_drawdown": 0.096142,
+      "sharpe": 0.939139,
+      "trades": 116,
+      "win_rate": 0.37931,
+      "beats_hold": false,
+      "random_percentile": 96.666667
+     },
+     "BNB/USDT": {
+      "total_return": 0.094741,
+      "cagr": 0.030613,
+      "max_drawdown": 0.164771,
+      "sharpe": 0.438388,
+      "trades": 135,
+      "win_rate": 0.325926,
+      "beats_hold": false,
+      "random_percentile": 90.0
+     },
+     "XRP/USDT": {
+      "total_return": 0.147433,
+      "cagr": 0.04688,
+      "max_drawdown": 0.091745,
+      "sharpe": 0.704411,
+      "trades": 86,
+      "win_rate": 0.372093,
+      "beats_hold": false,
+      "random_percentile": 93.333333
+     }
+    },
+    "place": 2
+   },
+   {
+    "strategy": "ema_cross",
+    "label_he": "חציית ממוצעים",
+    "label_en": "Moving-average cross",
+    "avg_return": 0.097493,
+    "avg_cagr": 0.02978,
+    "avg_max_drawdown": 0.068639,
+    "avg_sharpe": 0.558223,
+    "trades": 186,
+    "avg_win_rate": 0.347707,
+    "coins_beating_hold": 0,
+    "coins": 5,
+    "avg_random_percentile": 76.666667,
+    "enough_trades": true,
+    "per_symbol": {
+     "BTC/USDT": {
+      "total_return": 0.081484,
+      "cagr": 0.026439,
+      "max_drawdown": 0.048724,
+      "sharpe": 0.535763,
+      "trades": 33,
+      "win_rate": 0.363636,
+      "beats_hold": false,
+      "random_percentile": 96.666667
+     },
+     "ETH/USDT": {
+      "total_return": 0.01727,
+      "cagr": 0.00572,
+      "max_drawdown": 0.066301,
+      "sharpe": 0.137575,
+      "trades": 32,
+      "win_rate": 0.28125,
+      "beats_hold": false,
+      "random_percentile": 56.666667
+     },
+     "SOL/USDT": {
+      "total_return": 0.340501,
+      "cagr": 0.102546,
+      "max_drawdown": 0.032131,
+      "sharpe": 1.901415,
+      "trades": 34,
+      "win_rate": 0.5,
+      "beats_hold": false,
+      "random_percentile": 100.0
+     },
+     "BNB/USDT": {
+      "total_return": 0.114193,
+      "cagr": 0.036678,
+      "max_drawdown": 0.073349,
+      "sharpe": 0.604371,
+      "trades": 45,
+      "win_rate": 0.355556,
+      "beats_hold": false,
+      "random_percentile": 90.0
+     },
+     "XRP/USDT": {
+      "total_return": -0.065985,
+      "cagr": -0.022484,
+      "max_drawdown": 0.12269,
+      "sharpe": -0.388007,
+      "trades": 42,
+      "win_rate": 0.238095,
+      "beats_hold": false,
+      "random_percentile": 40.0
+     }
+    },
+    "place": 3
+   },
+   {
+    "strategy": "rsi_dip",
+    "label_he": "קנייה בירידה זמנית",
+    "label_en": "Buy the dip (RSI)",
+    "avg_return": 0.013536,
+    "avg_cagr": 0.004407,
+    "avg_max_drawdown": 0.04614,
+    "avg_sharpe": 0.20945,
+    "trades": 60,
+    "avg_win_rate": 0.543386,
+    "coins_beating_hold": 0,
+    "coins": 5,
+    "avg_random_percentile": 70.666667,
+    "enough_trades": true,
+    "per_symbol": {
+     "BTC/USDT": {
+      "total_return": 0.011486,
+      "cagr": 0.003812,
+      "max_drawdown": 0.044069,
+      "sharpe": 0.141759,
+      "trades": 16,
+      "win_rate": 0.5625,
+      "beats_hold": false,
+      "random_percentile": 83.333333
+     },
+     "ETH/USDT": {
+      "total_return": 0.018226,
+      "cagr": 0.006035,
+      "max_drawdown": 0.039945,
+      "sharpe": 0.321938,
+      "trades": 11,
+      "win_rate": 0.545455,
+      "beats_hold": false,
+      "random_percentile": 60.0
+     },
+     "SOL/USDT": {
+      "total_return": -0.02941,
+      "cagr": -0.009895,
+      "max_drawdown": 0.068175,
+      "sharpe": -0.450835,
+      "trades": 12,
+      "win_rate": 0.416667,
+      "beats_hold": false,
+      "random_percentile": 40.0
+     },
+     "BNB/USDT": {
+      "total_return": 0.057273,
+      "cagr": 0.018726,
+      "max_drawdown": 0.031265,
+      "sharpe": 0.856542,
+      "trades": 13,
+      "win_rate": 0.692308,
+      "beats_hold": false,
+      "random_percentile": 96.666667
+     },
+     "XRP/USDT": {
+      "total_return": 0.010106,
+      "cagr": 0.003355,
+      "max_drawdown": 0.047247,
+      "sharpe": 0.177846,
+      "trades": 8,
+      "win_rate": 0.5,
+      "beats_hold": false,
+      "random_percentile": 73.333333
+     }
+    },
+    "place": 4
+   },
+   {
+    "strategy": "macd_trend",
+    "label_he": "מומנטום MACD",
+    "label_en": "MACD momentum",
+    "avg_return": 0.010049,
+    "avg_cagr": 0.002947,
+    "avg_max_drawdown": 0.114839,
+    "avg_sharpe": 0.116531,
+    "trades": 415,
+    "avg_win_rate": 0.294656,
+    "coins_beating_hold": 0,
+    "coins": 5,
+    "avg_random_percentile": 74.666667,
+    "enough_trades": true,
+    "per_symbol": {
+     "BTC/USDT": {
+      "total_return": -0.054163,
+      "cagr": -0.018379,
+      "max_drawdown": 0.16136,
+      "sharpe": -0.359315,
+      "trades": 89,
+      "win_rate": 0.269663,
+      "beats_hold": false,
+      "random_percentile": 56.666667
+     },
+     "ETH/USDT": {
+      "total_return": 0.02815,
+      "cagr": 0.009291,
+      "max_drawdown": 0.084645,
+      "sharpe": 0.236801,
+      "trades": 69,
+      "win_rate": 0.275362,
+      "beats_hold": false,
+      "random_percentile": 86.666667
+     },
+     "SOL/USDT": {
+      "total_return": 0.112924,
+      "cagr": 0.036285,
+      "max_drawdown": 0.050268,
+      "sharpe": 0.88509,
+      "trades": 76,
+      "win_rate": 0.407895,
+      "beats_hold": false,
+      "random_percentile": 93.333333
+     },
+     "BNB/USDT": {
+      "total_return": -0.045682,
+      "cagr": -0.015456,
+      "max_drawdown": 0.170465,
+      "sharpe": -0.270003,
+      "trades": 110,
+      "win_rate": 0.309091,
+      "beats_hold": false,
+      "random_percentile": 56.666667
+     },
+     "XRP/USDT": {
+      "total_return": 0.009016,
+      "cagr": 0.002994,
+      "max_drawdown": 0.107458,
+      "sharpe": 0.090083,
+      "trades": 71,
+      "win_rate": 0.211268,
+      "beats_hold": false,
+      "random_percentile": 80.0
+     }
+    },
+    "place": 5
+   },
+   {
+    "strategy": "bb_squeeze",
+    "label_he": "פריצה אחרי שקט",
+    "label_en": "Breakout after a quiet period",
+    "avg_return": 0.013114,
+    "avg_cagr": 0.002779,
+    "avg_max_drawdown": 0.122101,
+    "avg_sharpe": 0.041493,
+    "trades": 422,
+    "avg_win_rate": 0.309203,
+    "coins_beating_hold": 0,
+    "coins": 5,
+    "avg_random_percentile": 56.666667,
+    "enough_trades": true,
+    "per_symbol": {
+     "BTC/USDT": {
+      "total_return": 0.078634,
+      "cagr": 0.025537,
+      "max_drawdown": 0.102032,
+      "sharpe": 0.455833,
+      "trades": 88,
+      "win_rate": 0.363636,
+      "beats_hold": false,
+      "random_percentile": 93.333333
+     },
+     "ETH/USDT": {
+      "total_return": -0.076254,
+      "cagr": -0.026077,
+      "max_drawdown": 0.179411,
+      "sharpe": -0.403529,
+      "trades": 101,
+      "win_rate": 0.247525,
+      "beats_hold": false,
+      "random_percentile": 20.0
+     },
+     "SOL/USDT": {
+      "total_return": 0.17503,
+      "cagr": 0.055202,
+      "max_drawdown": 0.072594,
+      "sharpe": 1.002904,
+      "trades": 79,
+      "win_rate": 0.405063,
+      "beats_hold": false,
+      "random_percentile": 96.666667
+     },
+     "BNB/USDT": {
+      "total_return": 0.050653,
+      "cagr": 0.016597,
+      "max_drawdown": 0.071163,
+      "sharpe": 0.318964,
+      "trades": 79,
+      "win_rate": 0.316456,
+      "beats_hold": false,
+      "random_percentile": 73.333333
+     },
+     "XRP/USDT": {
+      "total_return": -0.162494,
+      "cagr": -0.057362,
+      "max_drawdown": 0.185304,
+      "sharpe": -1.166709,
+      "trades": 75,
+      "win_rate": 0.213333,
+      "beats_hold": false,
+      "random_percentile": 0.0
+     }
+    },
+    "place": 6
+   },
+   {
+    "strategy": "legacy",
+    "label_he": "השיטה המקורית",
+    "label_en": "Original mix",
+    "avg_return": -0.012775,
+    "avg_cagr": -0.004633,
+    "avg_max_drawdown": 0.152409,
+    "avg_sharpe": -0.02985,
+    "trades": 552,
+    "avg_win_rate": 0.266006,
+    "coins_beating_hold": 0,
+    "coins": 5,
+    "avg_random_percentile": 44.666667,
+    "enough_trades": true,
+    "per_symbol": {
+     "BTC/USDT": {
+      "total_return": -0.084099,
+      "cagr": -0.02884,
+      "max_drawdown": 0.119553,
+      "sharpe": -0.337459,
+      "trades": 107,
+      "win_rate": 0.214953,
+      "beats_hold": false,
+      "random_percentile": 30.0
+     },
+     "ETH/USDT": {
+      "total_return": -0.076214,
+      "cagr": -0.026063,
+      "max_drawdown": 0.212919,
+      "sharpe": -0.326665,
+      "trades": 111,
+      "win_rate": 0.216216,
+      "beats_hold": false,
+      "random_percentile": 23.333333
+     },
+     "SOL/USDT": {
+      "total_return": 0.019972,
+      "cagr": 0.006609,
+      "max_drawdown": 0.15519,
+      "sharpe": 0.126139,
+      "trades": 107,
+      "win_rate": 0.299065,
+      "beats_hold": false,
+      "random_percentile": 46.666667
+     },
+     "BNB/USDT": {
+      "total_return": 0.048996,
+      "cagr": 0.016062,
+      "max_drawdown": 0.13479,
+      "sharpe": 0.239791,
+      "trades": 111,
+      "win_rate": 0.315315,
+      "beats_hold": false,
+      "random_percentile": 50.0
+     },
+     "XRP/USDT": {
+      "total_return": 0.027469,
+      "cagr": 0.009068,
+      "max_drawdown": 0.139592,
+      "sharpe": 0.148942,
+      "trades": 116,
+      "win_rate": 0.284483,
+      "beats_hold": false,
+      "random_percentile": 73.333333
+     }
+    },
+    "place": 7
+   }
+  ]
+ }
+}
