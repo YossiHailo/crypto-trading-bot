@@ -1,0 +1,1232 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Crypto Bot Dashboard</title>
+<style>
+:root {
+  color-scheme: light;
+  --bg: #f4f3f0;
+  --surface: #fcfcfb;
+  --surface-2: #f0efec;
+  --border: #e2e0da;
+  --text: #0b0b0b;
+  --text-2: #52514e;
+  --muted: #8a8984;
+  --accent: #2a78d6;
+  --accent-soft: #e3eefb;
+  --good: #0a7d0a;
+  --good-soft: #e1f3e1;
+  --bad: #c42f2f;
+  --bad-soft: #fbe3e3;
+  --warn: #8f5d00;
+  --warn-soft: #fdf1d6;
+  --warn-dot: #e0a100;
+  --grid: #e8e6e1;
+  --radius: 14px;
+  --shadow: 0 1px 2px rgba(0,0,0,.04), 0 2px 10px rgba(0,0,0,.04);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg: #121211; --surface: #1a1a19; --surface-2: #242422; --border: #2f2f2c;
+    --text: #ffffff; --text-2: #c3c2b7; --muted: #8f8e86; --accent: #3987e5; --accent-soft: #1b2a3f;
+    --good: #45c445; --good-soft: #15301a; --bad: #ef6b6b; --bad-soft: #3a1a1a;
+    --warn: #f0b43a; --warn-soft: #362a10; --warn-dot: #f0b43a; --grid: #2a2a28; --shadow: none;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #121211; --surface: #1a1a19; --surface-2: #242422; --border: #2f2f2c;
+  --text: #ffffff; --text-2: #c3c2b7; --muted: #8f8e86; --accent: #3987e5; --accent-soft: #1b2a3f;
+  --good: #45c445; --good-soft: #15301a; --bad: #ef6b6b; --bad-soft: #3a1a1a;
+  --warn: #f0b43a; --warn-soft: #362a10; --warn-dot: #f0b43a; --grid: #2a2a28; --shadow: none;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+bdi { unicode-bidi: isolate; direction: ltr; font-variant-numeric: tabular-nums; }
+html, body { margin: 0; }
+body {
+  background: var(--bg); color: var(--text);
+  font: 15px/1.55 system-ui, -apple-system, "Segoe UI", "Rubik", "Noto Sans Hebrew", Arial, sans-serif;
+}
+.num { font-variant-numeric: tabular-nums; direction: ltr; unicode-bidi: isolate; }
+a { color: var(--accent); }
+header { position: sticky; top: 0; z-index: 5; background: color-mix(in srgb, var(--bg) 90%, transparent); backdrop-filter: blur(8px); border-bottom: 1px solid var(--border); }
+.bar { max-width: 1180px; margin: 0 auto; padding: 10px 16px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.brand { font-weight: 700; font-size: 17px; display: flex; gap: 8px; align-items: center; }
+.brand svg { width: 22px; height: 22px; color: var(--accent); }
+.spacer { flex: 1; }
+.chip { display: inline-flex; align-items: center; gap: 6px; border-radius: 999px; padding: 3px 11px; font-size: 13px; font-weight: 600; background: var(--surface-2); color: var(--text-2); }
+.chip.good { background: var(--good-soft); color: var(--good); }
+.chip.bad { background: var(--bad-soft); color: var(--bad); }
+.chip.warn { background: var(--warn-soft); color: var(--warn); }
+.chip.info { background: var(--accent-soft); color: var(--accent); }
+button { font: inherit; cursor: pointer; border-radius: 10px; padding: 9px 14px; border: 1px solid var(--border); background: var(--surface); color: var(--text); }
+button:hover { background: var(--surface-2); }
+button:disabled { opacity: .45; cursor: default; }
+button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+button.danger { color: var(--bad); border-color: color-mix(in srgb, var(--bad) 45%, var(--border)); }
+button.danger:hover { background: var(--bad-soft); }
+button.ghost { border-color: transparent; background: transparent; padding: 7px 10px; }
+main { max-width: 1180px; margin: 0 auto; padding: 16px; display: grid; gap: 16px; }
+section h2 { font-size: 17px; margin: 0 0 4px; display: flex; align-items: center; gap: 8px; }
+section .lead { color: var(--text-2); margin: 0 0 12px; font-size: 14px; }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 18px; box-shadow: var(--shadow); min-width: 0; }
+
+/* Status hero */
+.hero { display: flex; gap: 16px; align-items: center; border-radius: var(--radius); padding: 18px 20px; border: 1px solid transparent; }
+.hero.good { background: var(--good-soft); }
+.hero.warn { background: var(--warn-soft); }
+.hero.bad { background: var(--bad-soft); }
+.hero .light { flex: none; width: 46px; height: 46px; border-radius: 50%; display: grid; place-items: center; color: #fff; font-size: 24px; font-weight: 700; }
+.hero.good .light { background: var(--good); }
+.hero.warn .light { background: var(--warn-dot); color: #2b1d00; }
+.hero.bad .light { background: var(--bad); }
+.hero h1 { font-size: 21px; margin: 0; line-height: 1.3; }
+.hero p { margin: 3px 0 0; color: var(--text-2); }
+.hero .when { margin-top: 6px; font-size: 13.5px; color: var(--text-2); }
+
+/* KPIs */
+.kpis { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+.kpi .label { font-size: 14px; color: var(--text-2); display: flex; align-items: center; gap: 6px; }
+.kpi .value { font-size: 28px; font-weight: 700; margin-top: 2px; }
+.kpi .sub { font-size: 13.5px; color: var(--text-2); margin-top: 2px; }
+.pos { color: var(--good); }
+.neg { color: var(--bad); }
+.meter { height: 8px; border-radius: 999px; background: var(--surface-2); margin-top: 10px; overflow: hidden; }
+.meter > i { display: block; height: 100%; border-radius: 999px; background: var(--good); }
+.meter.warn > i { background: var(--warn-dot); }
+.meter.bad > i { background: var(--bad); }
+.meter.info > i { background: var(--accent); }
+
+/* Help tooltips */
+.q { display: inline-grid; place-items: center; width: 18px; height: 18px; border-radius: 50%; background: var(--surface-2); color: var(--text-2); font-size: 12px; font-weight: 700; cursor: help; position: relative; flex: none; }
+.q:hover::after, .q:focus::after {
+  content: attr(data-tip); position: absolute; top: 24px; inset-inline-start: -8px; z-index: 20; width: max-content; max-width: 280px;
+  background: var(--text); color: var(--bg); padding: 8px 10px; border-radius: 8px; font-size: 13px; font-weight: 400; line-height: 1.45; white-space: normal;
+}
+
+/* Positions */
+.positions { display: grid; gap: 12px; }
+.pos-card { border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; }
+.pos-top { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.pos-title { font-weight: 700; font-size: 16px; }
+.pos-pnl { font-weight: 700; font-size: 18px; }
+.range { position: relative; height: 10px; border-radius: 999px; margin: 30px 0 8px;
+  background: linear-gradient(90deg, var(--bad-soft), var(--surface-2) 50%, var(--good-soft)); border: 1px solid var(--border); direction: ltr; }
+.range .marker { position: absolute; top: -6px; width: 4px; height: 20px; border-radius: 2px; background: var(--text); transform: translateX(-2px); }
+.range .now { position: absolute; top: -27px; transform: translateX(-50%); font-size: 12.5px; font-weight: 600; white-space: nowrap; background: var(--surface); padding: 0 4px; }
+.range-labels { display: flex; justify-content: space-between; font-size: 13px; color: var(--text-2); direction: ltr; gap: 10px; }
+.range-labels span { unicode-bidi: plaintext; }
+.range-labels .stop { color: var(--bad); text-align: left; }
+.range-labels .target { color: var(--good); text-align: right; }
+.pos-foot { margin-top: 8px; font-size: 13px; color: var(--text-2); display: flex; gap: 12px; flex-wrap: wrap; }
+.empty { color: var(--text-2); padding: 14px; text-align: center; background: var(--surface-2); border-radius: 12px; }
+
+/* Thinking */
+.think { display: grid; gap: 10px; }
+.think-row { display: flex; gap: 12px; align-items: flex-start; border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; }
+.coin { flex: none; width: 38px; height: 38px; border-radius: 50%; display: grid; place-items: center; font-weight: 700; font-size: 13px; background: var(--accent-soft); color: var(--accent); }
+.think-body { flex: 1; min-width: 0; }
+.think-head { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.think-head b { font-size: 15.5px; }
+.think-text { margin-top: 3px; }
+details { margin-top: 6px; }
+details summary { cursor: pointer; color: var(--muted); font-size: 12.5px; }
+details p { margin: 6px 0 0; color: var(--text-2); font-size: 12.5px; white-space: pre-wrap; word-break: break-word; unicode-bidi: plaintext; }
+
+/* Chart */
+.chart-box { position: relative; direction: ltr; }
+.remote { display: grid; gap: 10px; font-size: 14.5px; line-height: 1.6; }
+.arena-notes { margin-top: 12px; font-size: 14px; color: var(--text-2); line-height: 1.6; }
+.arena-notes ul { margin: 4px 0 0; padding-inline-start: 20px; }
+tr.champ td { font-weight: 600; }
+tr.out td { color: var(--muted); text-decoration: line-through; text-decoration-thickness: 1px; }
+tr.out td:last-child { text-decoration: none; }
+.remote ol { margin: 0; padding-inline-start: 22px; }
+.remote .ctrl-names { color: var(--text-2); font-size: 13.5px; }
+.legend i.dep { background: none; border-top: 2px dashed var(--muted); height: 0; }
+.chart-box svg { display: block; width: 100%; height: 230px; }
+.tooltip { position: absolute; pointer-events: none; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 6px 9px; font-size: 12.5px; box-shadow: 0 4px 16px rgba(0,0,0,.12); white-space: nowrap; display: none; }
+.legend { display: flex; gap: 16px; flex-wrap: wrap; font-size: 13px; color: var(--text-2); margin-top: 6px; }
+.legend i { display: inline-block; width: 16px; height: 3px; border-radius: 2px; vertical-align: middle; margin-inline-end: 6px; background: var(--accent); }
+.legend i.base { background: none; border-top: 2px dashed var(--muted); height: 0; }
+
+/* Journal */
+.journal { list-style: none; margin: 0; padding: 0; }
+.journal li { display: flex; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--grid); }
+.journal li:last-child { border-bottom: none; }
+.journal .ico { flex: none; width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; font-size: 13px; font-weight: 700; background: var(--surface-2); color: var(--text-2); }
+.journal .ico.buy { background: var(--good-soft); color: var(--good); }
+.journal .ico.sell { background: var(--bad-soft); color: var(--bad); }
+.journal .when { color: var(--muted); font-size: 12.5px; }
+.toolbar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 6px; font-size: 13.5px; color: var(--text-2); }
+.toolbar label { display: inline-flex; gap: 6px; align-items: center; cursor: pointer; }
+
+/* Tables */
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+th { text-align: start; font-weight: 600; color: var(--text-2); font-size: 13px; padding: 7px 8px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+td { padding: 8px; border-bottom: 1px solid var(--grid); }
+tr:last-child td { border-bottom: none; }
+
+.two { display: grid; gap: 16px; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); }
+@media (max-width: 920px) { .two { grid-template-columns: 1fr; } }
+.controls { display: grid; gap: 14px; }
+.ctrl-group h3 { font-size: 14px; margin: 0 0 8px; color: var(--text-2); }
+.ctrl { display: flex; gap: 12px; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--grid); }
+.ctrl:last-child { border-bottom: none; }
+.ctrl button { flex: none; min-width: 150px; }
+.ctrl span { color: var(--text-2); font-size: 13.5px; }
+
+.events { list-style: none; margin: 0; padding: 0; max-height: 320px; overflow: auto; }
+.events li { display: flex; gap: 8px; padding: 7px 0; border-bottom: 1px solid var(--grid); font-size: 14px; }
+.events li:last-child { border-bottom: none; }
+.dot { flex: none; width: 9px; height: 9px; border-radius: 50%; margin-top: 7px; background: var(--accent); }
+.dot.warning { background: var(--warn-dot); }
+.dot.error { background: var(--bad); }
+
+.kv { display: grid; grid-template-columns: minmax(0, auto) minmax(0, 1fr); gap: 6px 16px; font-size: 14px; margin-top: 10px; }
+.kv dt { color: var(--text-2); }
+.kv dd { margin: 0; }
+.kv dd small { color: var(--muted); display: block; }
+
+.modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,.45); display: none; align-items: center; justify-content: center; z-index: 40; padding: 16px; }
+.modal { background: var(--surface); border-radius: 16px; max-width: 460px; width: 100%; padding: 20px; border: 1px solid var(--border); max-height: calc(100vh - 32px); overflow: auto; }
+.modal.wide { max-width: 680px; }
+.modal h3 { margin: 0 0 8px; font-size: 18px; }
+.modal p { margin: 0 0 12px; color: var(--text-2); }
+.modal .actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 8px; }
+.modal input { width: 100%; padding: 9px 11px; border-radius: 9px; border: 1px solid var(--border); background: var(--surface-2); color: var(--text); font: inherit; margin-bottom: 12px; }
+.help h4 { margin: 14px 0 4px; font-size: 15px; }
+.help p { margin: 0 0 6px; color: var(--text-2); }
+.toast { position: fixed; bottom: 16px; inset-inline-start: 16px; background: var(--text); color: var(--bg); padding: 11px 15px; border-radius: 11px; font-size: 14px; display: none; max-width: min(520px, calc(100vw - 32px)); z-index: 50; }
+footer { max-width: 1180px; margin: 0 auto; padding: 0 16px 28px; color: var(--muted); font-size: 13px; }
+</style>
+</head>
+<body>
+<header>
+  <div class="bar">
+    <div class="brand">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 17l5-5 4 4 8-8"/><path d="M14 8h6v6"/></svg>
+      <span data-i18n="title"></span>
+    </div>
+    <span id="modeChip" class="chip"></span>
+    <span class="spacer"></span>
+    <button class="ghost" id="helpBtn" type="button" data-i18n="howToRead"></button>
+    <button class="ghost" id="langBtn" type="button"></button>
+  </div>
+</header>
+
+<main>
+  <div id="hero" class="hero good" role="status">
+    <div class="light" id="heroLight">✓</div>
+    <div>
+      <h1 id="heroTitle"></h1>
+      <p id="heroText"></p>
+      <div class="when" id="heroWhen"></div>
+    </div>
+  </div>
+
+  <section class="kpis" aria-label="summary">
+    <div class="card kpi">
+      <div class="label"><span data-i18n="kEquity"></span><span class="q" tabindex="0" data-i18n-tip="tipEquity">?</span></div>
+      <div class="value num" id="kEquity">—</div>
+      <div class="sub" id="kEquitySub"></div>
+      <div class="sub" id="kDeposit" hidden></div>
+    </div>
+    <div class="card kpi">
+      <div class="label"><span data-i18n="kToday"></span><span class="q" tabindex="0" data-i18n-tip="tipToday">?</span></div>
+      <div class="value num" id="kToday">—</div>
+      <div class="sub" id="kTodaySub"></div>
+      <div class="meter" id="mToday"><i style="width:0"></i></div>
+    </div>
+    <div class="card kpi">
+      <div class="label"><span data-i18n="kInvested"></span><span class="q" tabindex="0" data-i18n-tip="tipInvested">?</span></div>
+      <div class="value num" id="kInvested">—</div>
+      <div class="sub" id="kInvestedSub"></div>
+      <div class="meter info" id="mInvested"><i style="width:0"></i></div>
+    </div>
+    <div class="card kpi">
+      <div class="label"><span data-i18n="kSafety"></span><span class="q" tabindex="0" data-i18n-tip="tipSafety">?</span></div>
+      <div class="value" id="kSafety">—</div>
+      <div class="sub" id="kSafetySub"></div>
+      <div class="meter" id="mSafety"><i style="width:0"></i></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2><span data-i18n="posTitle"></span> <span class="chip" id="posCount"></span></h2>
+    <p class="lead" data-i18n="posLead"></p>
+    <div class="positions" id="positions"></div>
+  </section>
+
+  <section class="card">
+    <h2 data-i18n="thinkTitle"></h2>
+    <p class="lead" id="thinkLead"></p>
+    <div class="think" id="think"></div>
+  </section>
+
+  <section class="card" id="arenaCard" hidden>
+    <h2><span data-i18n="arenaTitle"></span> <span class="chip info" id="arenaChampion"></span></h2>
+    <p class="lead" id="arenaLead"></p>
+    <div class="table-wrap"><table>
+      <thead><tr><th data-i18n="arPlace"></th><th data-i18n="arStrategy"></th><th data-i18n="arValue"></th><th data-i18n="arProfit"></th><th data-i18n="arTrades"></th><th data-i18n="arStatus"></th></tr></thead>
+      <tbody id="arenaRows"></tbody>
+    </table></div>
+    <div id="arenaHistory" class="arena-notes"></div>
+    <div id="arenaResearch" class="arena-notes"></div>
+  </section>
+
+  <div class="two">
+    <section class="card">
+      <h2 data-i18n="chartTitle"></h2>
+      <p class="lead" data-i18n="chartLead"></p>
+      <div class="chart-box" id="chartBox">
+        <svg id="chart" role="img" aria-label="Account value over time"></svg>
+        <div class="tooltip" id="tip"></div>
+      </div>
+      <div class="legend"><span><i></i><span data-i18n="legendValue"></span></span><span><i class="base"></i><span data-i18n="legendStart"></span></span></div>
+    </section>
+
+    <section class="card">
+      <h2 data-i18n="ctrlTitle"></h2>
+      <p class="lead" id="ctrlLead" data-i18n="ctrlLead"></p>
+      <div class="remote" id="remoteBox" hidden></div>
+      <div class="controls" id="controlsBox">
+        <div class="ctrl-group">
+          <h3 data-i18n="ctrlDaily"></h3>
+          <div class="ctrl"><button id="btnPause" type="button" data-i18n="pause"></button><span data-i18n="pauseHint"></span></div>
+          <div class="ctrl"><button id="btnResume" type="button" class="primary" data-i18n="resume"></button><span data-i18n="resumeHint"></span></div>
+          <div class="ctrl"><button id="btnRun" type="button" data-i18n="runNow"></button><span data-i18n="runHint"></span></div>
+          <div class="ctrl" id="resetRow" hidden><button id="btnReset" type="button" class="primary" data-i18n="resetHalt"></button><span data-i18n="resetHint"></span></div>
+        </div>
+        <div class="ctrl-group">
+          <h3 data-i18n="ctrlEmergency"></h3>
+          <div class="ctrl"><button id="btnCloseAll" type="button" class="danger" data-i18n="closeAll"></button><span data-i18n="closeAllHint"></span></div>
+          <div class="ctrl"><button id="btnStop" type="button" class="danger" data-i18n="stopBot"></button><span data-i18n="stopHint"></span></div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <section class="card">
+    <h2 data-i18n="journalTitle"></h2>
+    <p class="lead" id="journalLead"></p>
+    <div class="toolbar"><label><input type="checkbox" id="showWaits"> <span data-i18n="showWaits"></span></label></div>
+    <ul class="journal" id="journal"></ul>
+  </section>
+
+  <section class="card">
+    <h2><span data-i18n="tradesTitle"></span> <span class="chip" id="tradeCount"></span></h2>
+    <p class="lead" id="tradesLead"></p>
+    <div class="table-wrap"><table>
+      <thead><tr><th data-i18n="thWhen"></th><th data-i18n="thCoin"></th><th data-i18n="thResult"></th><th data-i18n="thBuySell"></th><th data-i18n="thWhy"></th></tr></thead>
+      <tbody id="trades"></tbody>
+    </table></div>
+  </section>
+
+  <div class="two">
+    <section class="card">
+      <h2 data-i18n="eventsTitle"></h2>
+      <p class="lead" data-i18n="eventsLead"></p>
+      <ul class="events" id="events"></ul>
+    </section>
+    <section class="card">
+      <h2 data-i18n="cfgTitle"></h2>
+      <p class="lead" data-i18n="cfgLead"></p>
+      <dl class="kv" id="config"></dl>
+    </section>
+  </div>
+</main>
+<footer data-i18n="footer"></footer>
+
+<div class="modal-bg" id="modalBg">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <h3 id="modalTitle"></h3>
+    <p id="modalText"></p>
+    <input id="modalInput" type="password" autocomplete="off" style="display:none">
+    <div class="actions">
+      <button type="button" id="modalCancel" data-i18n="cancel"></button>
+      <button type="button" id="modalOk" class="primary" data-i18n="confirm"></button>
+    </div>
+  </div>
+</div>
+<div class="modal-bg" id="helpBg">
+  <div class="modal wide help" role="dialog" aria-modal="true" aria-labelledby="helpTitle">
+    <h3 id="helpTitle" data-i18n="howToRead"></h3>
+    <div id="helpBody"></div>
+    <div class="actions"><button type="button" class="primary" id="helpClose" data-i18n="gotIt"></button></div>
+  </div>
+</div>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+(() => {
+  "use strict";
+  const GUIDE_URL = "https://claude.ai/code/artifact/e50eed63-501c-41f6-9444-0540fc62af29";
+  const COINS = {
+    BTC: { he: "ביטקוין", en: "Bitcoin" }, ETH: { he: "את'ריום", en: "Ethereum" }, SOL: { he: "סולנה", en: "Solana" },
+    BNB: { he: "BNB", en: "BNB" }, XRP: { he: "ריפל", en: "XRP" }, DOGE: { he: "דוג'קוין", en: "Dogecoin" },
+    ADA: { he: "קרדנו", en: "Cardano" }, AVAX: { he: "אבלנץ'", en: "Avalanche" }, LTC: { he: "לייטקוין", en: "Litecoin" }
+  };
+
+  const T = {
+    he: {
+      title: "בוט המסחר שלי", fullGuide: "למדריך המלא (נפתח בדפדפן)", howToRead: "איך לקרוא את המסך?", gotIt: "הבנתי",
+      paper: "מצב תרגול · כסף וירטואלי", live: "כסף אמיתי",
+      kEquity: "שווי החשבון", kToday: "היום", kInvested: "כמה מושקע עכשיו", kSafety: "רשת הביטחון",
+      tipEquity: "כל הכסף שבחשבון: המזומן ועוד שווי המטבעות שקנינו, לפי המחיר של עכשיו. הרווח האמיתי = השווי פחות כל מה שהפקדת (הסכום ההתחלתי וההפקדות החודשיות), כי הפקדה היא לא רווח.",
+      tipToday: "כמה החשבון עלה או ירד מאז חצות (שעון עולמי). אם ההפסד היומי מגיע למגבלה, הבוט מפסיק לקנות עד מחר.",
+      tipInvested: "איזה חלק מהכסף נמצא כרגע במטבעות. השאר נשאר במזומן. עסקה אחת לא תעבור חצי מהחשבון.",
+      tipSafety: "כמה החשבון ירד מהנקודה הכי גבוהה שלו. אם הירידה מגיעה למגבלה, הבוט עוצר קניות עד שתשחרר אותו.",
+      sinceStart: (chg, pct, base) => `רווח אמיתי ${chg} (${pct}) על ${base} שהפקדת`,
+      nextDeposit: (amt, d) => `הפקדה חודשית הבאה: ${amt} ב-${d}`,
+      dailyLimitUsed: (used, limit) => `מגבלת הפסד יומית: ${limit} · נוצל ${used}`,
+      todayFlat: "עדיין אין שינוי היום",
+      investedSub: (amt, n) => n ? `${amt} ב-${n} ${n === 1 ? "עסקה" : "עסקאות"} · השאר במזומן` : "הכול במזומן כרגע",
+      safetyOk: "בטוח", safetyWatch: "שים לב", safetyStop: "נעצר",
+      safetySub: (dd, limit) => `${dd} מתחת לשיא · עצירה אוטומטית ב-${limit}`,
+      posTitle: "העסקאות שלך עכשיו",
+      posLead: "לכל עסקה נקבעו מראש נקודת הפסד (סטופ) ונקודת רווח (יעד). הבוט מוכר אוטומטית כשהמחיר מגיע לאחת מהן.",
+      posNone: "אין עסקאות פתוחות. הבוט מחכה להזדמנות, וזה המצב הרגיל רוב הזמן.",
+      bought: (coin, price) => `${coin} · קנינו ב-${price}`,
+      sold: (coin, price) => `${coin} · מכירה בחסר ב-${price}`,
+      nowAt: (p) => `עכשיו ${p}`,
+      stopLbl: (p, m) => `סטופ ${p} · הפסד ${m}`,
+      targetLbl: (p, m) => `יעד ${p} · רווח ${m}`,
+      protectedEx: "✓ מוגנת בבורסה", protectedSim: "✓ מוגנת (סטופ מדומה)", unprotected: "! סטופ בתוכנה בלבד",
+      openedAgo: (t) => `נפתחה ${t}`, invested: (m) => `מושקע ${m}`,
+      thinkTitle: "מה הבוט חושב עכשיו",
+      thinkLead: (tf) => `הבוט מחליט רק אחרי ש${tf} נסגר. כאן כתוב, לכל מטבע, מה הוא רואה ומה צריך לקרות כדי שיפעל.`,
+      tfLabel: (tf) => ({ "1h": "נר של שעה", "4h": "נר של 4 שעות", "1d": "נר יומי", "15m": "נר של 15 דקות" }[tf] || `נר ${tf}`),
+      stWait: "ממתין", stBuy: "אות קנייה", stSell: "אות מכירה", stExit: "אות יציאה", stCollect: "אוסף נתונים",
+      sBuy: "המחיר פרץ מעל השיא של התקופה האחרונה, והמגמה עולה. זה האות לקנייה.",
+      sSellShort: "המחיר נשבר מתחת לשפל במגמה יורדת.",
+      sUpWait: (lvl, dist, tf) => `מגמה עולה. הבוט יקנה אם ${tf} ייסגר מעל ${lvl} (עוד ${dist}).`,
+      sUpAbove: (lvl, tf) => `מגמה עולה, והמחיר כבר מעל ${lvl}. אם ${tf} ייסגר כך, הבוט יקנה.`,
+      sDown: "מגמה יורדת. הבוט לא קונה כשהמחיר יורד, ומחכה שהמגמה תתהפך.",
+      sFlat: "אין מגמה ברורה. הבוט ממתין.",
+      sExit: "אם יש עסקה פתוחה במטבע הזה, הבוט ימכור אותה: המחיר ירד מתחת לשפל של התקופה האחרונה.",
+      sCollect: "עוד אין מספיק היסטוריית מחירים כדי להחליט.",
+      sLegacy: { BUY: "האינדיקטורים מצביעים על קנייה.", SELL: "האינדיקטורים מצביעים על מכירה.", HOLD: "האינדיקטורים לא מצביעים על כיוון. הבוט ממתין." },
+      techDetails: "פרטים טכניים",
+      moodTitle: "מצב הרוח בשוק",
+      mood: { BULLISH: "אופטימי", BEARISH: "פסימי", NEUTRAL: "ניטרלי" },
+      moodText: (fg) => fg === null || fg === undefined ? "מבוסס על כותרות חדשות. משמש רק כבלם: מצב רוח שלילי מאוד מונע קנייה." :
+        `מדד "פחד וחמדנות" עומד על ${fg} מתוך 100 (${fg < 25 ? "פחד קיצוני" : fg < 45 ? "פחד" : fg <= 55 ? "ניטרלי" : fg < 75 ? "חמדנות" : "חמדנות קיצונית"}). משמש רק כבלם: מצב רוח שלילי מאוד מונע קנייה.`,
+      chartTitle: "שווי החשבון לאורך זמן",
+      chartLead: "הקו המקווקו הוא הכסף שהפקדת (הוא עולה במדרגה בכל הפקדה חודשית). מעליו אתה ברווח, מתחתיו בהפסד. העבר את העכבר על הגרף לפרטים.",
+      legendValue: "שווי החשבון", legendStart: "הכסף שהפקדת",
+      chartEmpty: "הגרף יתמלא אחרי כמה בדיקות.",
+      ctrlTitle: "שליטה", ctrlLead: "ברוב הימים לא צריך ללחוץ כאן על כלום.",
+      ctrlDaily: "שימוש רגיל", ctrlEmergency: "חירום",
+      pause: "השהה קניות חדשות", pauseHint: "הבוט לא יפתח עסקאות חדשות. עסקאות פתוחות נשארות מוגנות.",
+      resume: "חדש קניות", resumeHint: "הבוט חוזר לעבוד כרגיל.",
+      runNow: "בדוק עכשיו", runHint: "מריץ בדיקה מיד, בלי לחכות לבדיקה הבאה.",
+      resetHalt: "שחרר עצירת חירום", resetHint: "רק אחרי שהבנת ביומן למה החשבון ירד.",
+      closeAll: "מכור הכול עכשיו", closeAllHint: "סוגר מיד את כל העסקאות במחיר השוק. אי אפשר לבטל.",
+      stopBot: "עצור את הבוט", stopHint: "מכבה את הבוט. כדי להפעיל שוב: start_bot.bat",
+      journalTitle: "יומן: מה הבוט עשה ולמה",
+      journalLead: (n, buys, sells) => `ב-24 השעות האחרונות: ${n} בדיקות, ${buys} קניות, ${sells} מכירות.`,
+      showWaits: "הצג גם בדיקות שבהן הבוט החליט לחכות",
+      journalEmpty: "עדיין לא בוצעו קניות או מכירות. זה תקין: הבוט קונה רק כשיש אות ברור.",
+      journalNone: "עדיין אין רשומות.",
+      tradesTitle: "עסקאות שנסגרו",
+      tradesLead: (n, wins, total) => n ? `${n} עסקאות, ${wins} ברווח. סך הכול: ${total}.` : "עדיין לא נסגרו עסקאות.",
+      thWhen: "מתי נסגרה", thCoin: "מטבע", thResult: "תוצאה", thBuySell: "מחיר קנייה ומכירה", thWhy: "למה נסגרה",
+      win: "רווח", loss: "הפסד",
+      reasons: { stop_loss: "הגיע לסטופ (הגבלת הפסד)", take_profit: "הגיע ליעד (מימוש רווח)", signal: "אות יציאה מהבוט", manual: "סגרת ידנית", external: "נסגרה מחוץ לבוט", end_of_data: "סוף הנתונים" },
+      eventsTitle: "התראות ואירועים", eventsLead: "הודעות מהבוט, מהחדש לישן.", eventsNone: "אין התראות.",
+      cfgTitle: "ההגדרות שלך", cfgLead: "לשינוי: עורכים את הקובץ .env בתיקיית הבוט ומפעילים מחדש.",
+      footer: "זה לא ייעוץ פיננסי. גם בוט יכול להפסיד כסף. הדף מתעדכן לבד כל 10 שניות.",
+      footerStatic: "זה לא ייעוץ פיננסי. גם בוט יכול להפסיד כסף. הבוט רץ בענן של GitHub כל 15 דקות בערך, גם כשהמחשב כבוי. הדף מתרענן לבד כל דקה.",
+      cfgLeadStatic: "לשינוי: עורכים את הקובץ ‎.github/workflows/bot.yml‎ במאגר ב-GitHub.",
+      ctrlLeadStatic: "הבוט רץ בענן, אז הכפתורים נמצאים ב-GitHub. ברוב הימים לא צריך לגעת בכלום.",
+      remoteSteps: (url) => `<ol><li>פתח את <a href="${url}" target="_blank" rel="noopener">דף הבוט ב-GitHub Actions</a>.</li><li>לחץ <b>Run workflow</b>.</li><li>בחר פעולה ולחץ שוב <b>Run workflow</b>. תוך דקה-שתיים הדף כאן יתעדכן.</li></ol>`,
+      reportsLink: "הדוחות היומיים (דוח לכל יום)",
+      arenaTitle: "תחרות השיטות",
+      arenaLead: (elim, margin, trades) => `כל שיטה סוחרת בחשבון וירטואלי משלה עם אותו כסף, אותם מטבעות ואותם כללי סיכון. החשבון הראשי עובד עם השיטה המובילה. פעם ביום הבוט בודק: שיטה אחרת תחליף אותה רק אם היא מקדימה אותה ב-${margin} לפחות ויש לה ${trades} עסקאות סגורות לפחות. שיטה שמפסידה ${elim} מהכסף שקיבלה מודחת.`,
+      arenaChampion: (name) => `אלופה: ${name}`,
+      arPlace: "מקום", arStrategy: "שיטה", arValue: "שווי", arProfit: "רווח אמיתי", arTrades: "עסקאות (ברווח)", arStatus: "מצב",
+      arActive: "פעילה", arOut: "הודחה", arChamp: "האלופה – החשבון הראשי עובד איתה",
+      arHistory: "החלפות שיטה אחרונות:",
+      arResearch: (from, to) => `בבדיקה היסטורית (${from} עד ${to}) על כל המטבעות, לפי תשואה ביחס לסיכון:`,
+      arResearchRow: (name, ret, dd, trades) => `${name}: תשואה ממוצעת ${ret}, ירידה מקסימלית ${dd}, ${trades} עסקאות`,
+      arResearchLink: "לדוח הבדיקה המלא",
+      arNoResearch: "הבדיקה ההיסטורית (3 שנים) עוד לא רצה. היא רצה אוטומטית בריצה הבאה ולוקחת כ-10 דקות.",
+      remoteNames: "הפעולות: pause = השהה קניות · resume = חדש קניות · close-all = מכור הכול · reset-halt = שחרר עצירת חירום · none = בדוק עכשיו.",
+      remoteStop: "כדי לעצור את הבוט לגמרי: בדף הבוט ב-GitHub Actions לוחצים על ⋯ ואז Disable workflow.",
+      heroOfflineStatic: "לא הצלחתי לטעון את הנתונים", heroOfflineStaticText: "ייתכן שהבוט עוד לא רץ אף פעם, או שיש תקלה זמנית ב-GitHub. נסה לרענן בעוד כמה דקות.",
+      heroStaleStatic: "GitHub לא הריץ את הבוט לאחרונה", heroStaleStaticText: "GitHub לפעמים מאחר בהרצות מתוזמנות. אם זה נמשך יותר משעתיים, בדוק את לשונית Actions במאגר.",
+      cancel: "ביטול", confirm: "אישור",
+      lastCheck: (t) => `בדיקה אחרונה ${t}`, nextCheck: (m, s) => `הבדיקה הבאה בעוד ${m}:${s}`, checking: "בודק עכשיו…",
+      heroOk: "הכול תקין", heroOkWait: "הבוט מחפש הזדמנות. כרגע אין עסקאות פתוחות.",
+      heroOkPos: (n) => `הבוט שומר על ${n === 1 ? "עסקה פתוחה אחת" : n + " עסקאות פתוחות"}.`,
+      heroPaper: " מצב תרגול: הכסף וירטואלי, אין סיכון.", heroLive: " שים לב: מצב כסף אמיתי.",
+      heroOffline: "אין חיבור לבוט", heroOfflineText: "בדוק שהחלון השחור של הבוט פתוח. אם סגרת אותו, הפעל שוב את start_bot.bat.",
+      heroHalted: "עצירת חירום: הבוט הפסיק לקנות", heroHaltedText: "החשבון ירד יותר מדי מהשיא שלו. עסקאות פתוחות עדיין מוגנות. בדוק ביומן מה קרה, ואז לחץ \"שחרר עצירת חירום\".",
+      heroStale: "הבוט לא ביצע בדיקה לאחרונה", heroStaleText: "ייתכן שאין אינטרנט או שהמחשב נכנס למצב שינה.",
+      heroDaily: "הגעת למגבלת ההפסד היומית", heroDailyText: "הבוט לא יקנה עוד היום. הוא יחזור לעבוד בחצות (שעון עולמי).",
+      heroPaused: "קניות חדשות מושהות", heroPausedText: "השהית את הבוט. עסקאות פתוחות נשארות מוגנות. כדי לחזור: \"חדש קניות\".",
+      heroErrors: "הבדיקה האחרונה נתקלה בבעיה", heroErrorsText: "הבוט ממשיך לעבוד. אם זה חוזר על עצמו, בדוק את החיבור לאינטרנט.",
+      heroSync: "ממתין לנתוני הבורסה", heroSyncText: "הבוט לא יקנה עד שיקבל את יתרת החשבון מהבורסה.",
+      confirmCloseAll: "למכור את כל העסקאות עכשיו?", confirmCloseAllText: "כל העסקאות ייסגרו מיד במחיר השוק. אי אפשר לבטל את זה.",
+      confirmStop: "לעצור את הבוט?", confirmStopText: "הבוט יכבה. כדי להפעיל אותו שוב, לחץ פעמיים על start_bot.bat.",
+      confirmReset: "לשחרר את עצירת החירום?", confirmResetText: "הבוט יחזור לקנות. נקודת השיא תתחיל מהשווי הנוכחי.",
+      tokenTitle: "נדרשת סיסמת גישה", tokenText: "הזן את DASHBOARD_TOKEN מקובץ ה-.env.",
+      cfg: [
+        ["mode", "מצב", (v) => v === "live" ? "כסף אמיתי" : "תרגול (כסף וירטואלי)"],
+        ["symbols", "מטבעות", (v, f) => v.map((s) => f.coinName(s)).join(", ")],
+        ["timeframe", "גודל נר", (v, f) => f.tf(v)],
+        ["loop_interval_minutes", "בדיקה כל", (v) => `${v} דקות`],
+        ["starting_balance", "סכום התחלתי", (v, f) => f.money(v)],
+        ["monthly_deposit", "הפקדה חודשית (מדומה)", (v, f) => v ? f.money(v) : "אין", "כמו העברה בנקאית מהחשבון שלך לארנק הקריפטו"],
+        ["deposit_day", "יום ההפקדה בחודש", (v) => `${v} בחודש (00:00 UTC)`],
+        ["risk_per_trade", "סיכון לעסקה", (v, f) => `${f.pct(v, 1)} מהחשבון`, "כמה מותר להפסיד בעסקה אחת אם הסטופ נוגע"],
+        ["max_notional_pct", "מקסימום לעסקה", (v, f) => `${f.pct(v, 0)} מהחשבון`],
+        ["daily_max_loss_pct", "מגבלת הפסד יומית", (v, f) => f.pct(v, 0)],
+        ["max_drawdown_pct", "עצירת חירום", (v, f) => `ירידה של ${f.pct(v, 0)} מהשיא`],
+        ["allow_short", "מכירה בחסר", (v) => v ? "מופעלת" : "כבויה"],
+        ["exchange", "בורסה", (v) => v],
+        ["strategy", "שיטה", (v) => stratName(v)]
+      ],
+      help: [
+        ["מה רואים למעלה?", "הפס הצבעוני אומר במשפט אחד אם הכול בסדר. ירוק: תקין. צהוב: שווה להסתכל. אדום: צריך לטפל."],
+        ["ארבעת המספרים", "שווי החשבון ומה השתנה מההתחלה; מה קרה היום; כמה מהכסף מושקע עכשיו; וכמה רחוקים מעצירת חירום. ליד כל כותרת יש סימן ? עם הסבר."],
+        ["העסקאות שלך", "לכל עסקה יש פס: בצד אחד נקודת ההפסד (סטופ), בצד השני נקודת הרווח (יעד), והסימון על הפס הוא המחיר עכשיו. הבוט מוכר לבד כשהמחיר מגיע לאחד הצדדים."],
+        ["מה הבוט חושב", "לכל מטבע כתוב בעברית פשוטה מה הבוט רואה ומה צריך לקרות כדי שיקנה. רוב הזמן התשובה היא \"ממתין\", וזה תקין."],
+        ["היומן", "כל קנייה ומכירה, עם הסיבה. אפשר לסמן כדי לראות גם את הבדיקות שבהן הבוט החליט לחכות."],
+        ["מתי ללחוץ על כפתורים?", "כמעט אף פעם. \"השהה\" עוצר קניות חדשות. \"מכור הכול\" ו\"עצור את הבוט\" הם לחירום בלבד, ויבקשו אישור."],
+        ["תחרות השיטות", "הבוט מריץ במקביל כמה שיטות מסחר, כל אחת עם חשבון וירטואלי משלה. החשבון הראשי עובד עם השיטה המובילה, ושיטה שמפסידה יותר מדי מודחת. הטבלה מראה מי מובילה."],
+        ["הפקדות חודשיות", "כל חודש נוספים לחשבון כמה דולרים, כמו העברה בנקאית מהחשבון שלך לארנק. הפקדה היא לא רווח: הרווח האמיתי הוא שווי החשבון פחות כל מה שהפקדת, וההפקדה גם לא נספרת כ\"רווח של היום\"."],
+        ["מילים שכדאי להכיר", "סטופ: מחיר שבו מוכרים כדי להגביל הפסד. יעד: מחיר שבו מוכרים כדי לממש רווח. מגמה עולה: המחיר עולה כבר כמה שבועות. USDT: מטבע דיגיטלי ששווה דולר, ולכן מוצג כאן כ-$."]
+      ],
+      events: [
+        [/^Bot started in paper mode/, () => "הבוט הופעל במצב תרגול."],
+        [/^Bot started in live mode/, () => "הבוט הופעל במצב כסף אמיתי."],
+        [/^Opened EXECUTE_BUY (\S+) @ ([\d.]+)/, (m, f) => `קנייה: ${f.coinName(m[1])} במחיר ${f.price(+m[2])}.`],
+        [/^Opened EXECUTE_SELL (\S+) @ ([\d.]+)/, (m, f) => `מכירה בחסר: ${f.coinName(m[1])} במחיר ${f.price(+m[2])}.`],
+        [/^Closed (long|short) (\S+) \((\w+)\) PnL (-?[\d.]+)/, (m, f) => `נסגרה עסקה ב${f.coinName(m[2])}: ${f.reason(m[3])}, ${+m[4] >= 0 ? "רווח" : "הפסד"} ${f.money(Math.abs(+m[4]))}.`],
+        [/^New entries paused/, () => "השהית קניות חדשות."],
+        [/^New entries resumed/, () => "חידשת קניות."],
+        [/^A cycle was requested/, () => "ביקשת בדיקה מיידית."],
+        [/^Stop requested/, () => "ביקשת לעצור את הבוט."],
+        [/^Kill switch reset/, () => "שחררת את עצירת החירום."],
+        [/^Close-all from the dashboard: (\d+)/, (m) => `מכרת הכול מהדשבורד: נסגרו ${m[1]} עסקאות.`],
+        [/^Close-all \(remote control\): (\d+)/, (m) => `מכרת הכול דרך GitHub: נסגרו ${m[1]} עסקאות.`],
+        [/^Monthly deposit \+([\d.]+) \S+ \(simulated bank transfer due (\S+)\)\. Total deposited: ([\d.]+)/, (m, f) => `הפקדה חודשית: ${f.money(+m[1])} הועברו "מהבנק" לחשבון (מועד ${m[2]}). סך הכול הופקד: ${f.money(+m[3])}.`],
+        [/^Downtime: no checks from (\S+) to (\S+) \((\d+) min\)/, (m, f) => `הבוט לא רץ ${m[3]} דקות (מ-${f.when(m[1])} עד ${f.when(m[2])}).`],
+        [/^Arena: strategy (\S+) eliminated/, (m) => `תחרות השיטות: השיטה "${stratName(m[1])}" הודחה כי הפסידה יותר מדי מהכסף שקיבלה.`],
+        [/^Arena: the main account switches strategy from (\S+) to (\S+)\./, (m) => `החשבון הראשי עבר משיטת "${stratName(m[1])}" לשיטת "${stratName(m[2])}".`],
+        [/^KILL SWITCH/, () => "עצירת חירום הופעלה: החשבון ירד יותר מדי מהשיא."],
+        [/market data failed/, (m, f, raw) => `לא הצלחתי לקבל מחירים עבור ${f.coinName(raw.split(":")[0])}. אנסה שוב בבדיקה הבאה.`],
+        [/^Startup:/, (m, f, raw) => `בדיקת התחלה: ${raw.replace(/^Startup:\s*/, "")}`]
+      ],
+      decisions: [
+        [/^Execute long/, "buy", "קנייה: יש אות ברור, וכל בדיקות הבטיחות עברו."],
+        [/^Execute short/, "sell", "מכירה בחסר: אות ירידה ברור."],
+        [/^Exit signal closes/, "sell", "מכירה: אות יציאה, המגמה נחלשה."],
+        [/Technical signal is HOLD/, "wait", "המתנה: אין כרגע אות קנייה."],
+        [/already open/, "wait", "המתנה: כבר יש עסקה פתוחה במטבע הזה."],
+        [/limit order is already resting/, "wait", "המתנה: יש כבר פקודת קנייה שמחכה."],
+        [/shorting is disabled/, "wait", "המתנה: אות ירידה, אבל מכירה בחסר כבויה ואין מה למכור."],
+        [/require MARKET_TYPE=swap/, "wait", "המתנה: מכירה בחסר לא אפשרית בשוק הזה."],
+        [/paused by the operator/, "wait", "לא נקנה: השהית קניות חדשות."],
+        [/Trading halted/, "wait", "לא נקנה: עצירת חירום פעילה."],
+        [/has not synced/, "wait", "לא נקנה: ממתין ליתרת החשבון מהבורסה."],
+        [/circuit breaker/, "wait", "לא נקנה: הגעת למגבלת ההפסד היומית."],
+        [/Cooldown/, "wait", "לא נקנה: הפסקה קצרה אחרי שהסטופ נגע במטבע הזה."],
+        [/Max open positions/, "wait", "לא נקנה: יש כבר מספיק עסקאות פתוחות."],
+        [/Sentiment veto/, "wait", "לא נקנה: מצב הרוח בשוק שלילי מדי."],
+        [/Combined confidence/, "wait", "לא נקנה: האות היה חלש מדי."],
+        [/Reward:risk/, "wait", "לא נקנה: הרווח האפשרי קטן מדי ביחס לסיכון."],
+        [/Position size is zero/, "wait", "לא נקנה: אין מספיק כסף פנוי או שהסכום קטן מדי."]
+      ]
+    },
+    en: {
+      title: "My trading bot", fullGuide: "Open the full guide", howToRead: "How to read this page", gotIt: "Got it",
+      paper: "Practice mode · virtual money", live: "Real money",
+      kEquity: "Account value", kToday: "Today", kInvested: "Invested now", kSafety: "Safety net",
+      tipEquity: "All the money in the account: cash plus the coins bought, at today's price.",
+      tipToday: "How much the account moved since midnight UTC. If the daily loss reaches the limit, the bot stops buying until tomorrow.",
+      tipInvested: "How much of the money is in coins right now. The rest stays in cash. One trade never exceeds half the account.",
+      tipSafety: "How far the account is below its highest point. At the limit, the bot stops buying until you release it.",
+      sinceStart: (chg, pct, base) => `True profit ${chg} (${pct}) on ${base} deposited`,
+      nextDeposit: (amt, d) => `Next monthly deposit: ${amt} on ${d}`,
+      dailyLimitUsed: (used, limit) => `Daily loss limit: ${limit} · used ${used}`,
+      todayFlat: "No change yet today",
+      investedSub: (amt, n) => n ? `${amt} in ${n} trade${n === 1 ? "" : "s"} · the rest is cash` : "All in cash right now",
+      safetyOk: "Safe", safetyWatch: "Watch", safetyStop: "Stopped",
+      safetySub: (dd, limit) => `${dd} below the peak · automatic stop at ${limit}`,
+      posTitle: "Your open trades",
+      posLead: "Every trade has a loss point (stop) and a profit point (target) set in advance. The bot sells automatically when the price reaches either.",
+      posNone: "No open trades. The bot is waiting for an opportunity, which is normal most of the time.",
+      bought: (coin, price) => `${coin} · bought at ${price}`,
+      sold: (coin, price) => `${coin} · sold short at ${price}`,
+      nowAt: (p) => `now ${p}`,
+      stopLbl: (p, m) => `stop ${p} · lose ${m}`,
+      targetLbl: (p, m) => `target ${p} · gain ${m}`,
+      protectedEx: "✓ protected on the exchange", protectedSim: "✓ protected (simulated stop)", unprotected: "! software stop only",
+      openedAgo: (t) => `opened ${t}`, invested: (m) => `invested ${m}`,
+      thinkTitle: "What the bot is thinking",
+      thinkLead: (tf) => `The bot decides only after a ${tf} closes. For each coin: what it sees and what has to happen before it acts.`,
+      tfLabel: (tf) => ({ "1h": "1-hour candle", "4h": "4-hour candle", "1d": "daily candle", "15m": "15-minute candle" }[tf] || `${tf} candle`),
+      stWait: "Waiting", stBuy: "Buy signal", stSell: "Sell signal", stExit: "Exit signal", stCollect: "Collecting data",
+      sBuy: "The price broke above its recent high and the trend is up. That is the buy signal.",
+      sSellShort: "The price broke below its recent low in a downtrend.",
+      sUpWait: (lvl, dist, tf) => `Uptrend. The bot buys if a ${tf} closes above ${lvl} (${dist} away).`,
+      sUpAbove: (lvl, tf) => `Uptrend, and the price is already above ${lvl}. If the ${tf} closes there, the bot buys.`,
+      sDown: "Downtrend. The bot does not buy while prices fall; it waits for the trend to turn.",
+      sFlat: "No clear trend. The bot is waiting.",
+      sExit: "If a trade is open in this coin, the bot will sell it: the price fell below its recent low.",
+      sCollect: "Not enough price history yet to decide.",
+      sLegacy: { BUY: "The indicators point to buying.", SELL: "The indicators point to selling.", HOLD: "The indicators show no direction. Waiting." },
+      techDetails: "Technical details",
+      moodTitle: "Market mood",
+      mood: { BULLISH: "optimistic", BEARISH: "pessimistic", NEUTRAL: "neutral" },
+      moodText: (fg) => fg === null || fg === undefined ? "Based on news headlines. Used only as a brake: a very negative mood blocks buying." :
+        `The Fear & Greed index is ${fg} out of 100. Used only as a brake: a very negative mood blocks buying.`,
+      chartTitle: "Account value over time",
+      chartLead: "The dashed line is the money you deposited (it steps up with every monthly deposit). Above it you are in profit, below it in loss. Hover for details.",
+      legendValue: "Account value", legendStart: "Money you deposited",
+      chartEmpty: "The chart fills in after a few checks.",
+      ctrlTitle: "Controls", ctrlLead: "On most days you do not need to press anything here.",
+      ctrlDaily: "Everyday", ctrlEmergency: "Emergency",
+      pause: "Pause new buys", pauseHint: "No new trades. Open trades stay protected.",
+      resume: "Resume buying", resumeHint: "The bot goes back to normal.",
+      runNow: "Check now", runHint: "Runs a check right away instead of waiting.",
+      resetHalt: "Release emergency stop", resetHint: "Only after you understand from the journal why the account fell.",
+      closeAll: "Sell everything now", closeAllHint: "Closes every trade at the market price. Cannot be undone.",
+      stopBot: "Stop the bot", stopHint: "Shuts the bot down. To start again: start_bot.bat",
+      journalTitle: "Journal: what the bot did and why",
+      journalLead: (n, buys, sells) => `Last 24 hours: ${n} checks, ${buys} buys, ${sells} sells.`,
+      showWaits: "Also show checks where the bot decided to wait",
+      journalEmpty: "No buys or sells yet. That is normal: the bot only buys on a clear signal.",
+      journalNone: "No entries yet.",
+      tradesTitle: "Closed trades",
+      tradesLead: (n, wins, total) => n ? `${n} trades, ${wins} profitable. Total: ${total}.` : "No closed trades yet.",
+      thWhen: "Closed", thCoin: "Coin", thResult: "Result", thBuySell: "Buy and sell price", thWhy: "Why it closed",
+      win: "Gain", loss: "Loss",
+      reasons: { stop_loss: "Hit the stop (loss limit)", take_profit: "Hit the target (profit taken)", signal: "Bot exit signal", manual: "You closed it", external: "Closed outside the bot", end_of_data: "End of data" },
+      eventsTitle: "Alerts and events", eventsLead: "Messages from the bot, newest first.", eventsNone: "No alerts.",
+      cfgTitle: "Your settings", cfgLead: "To change: edit the .env file in the bot folder and restart.",
+      footer: "Not financial advice. A bot can lose money too. This page refreshes every 10 seconds.",
+      footerStatic: "Not financial advice. A bot can lose money too. The bot runs in GitHub's cloud about every 15 minutes, even when your computer is off. This page refreshes every minute.",
+      cfgLeadStatic: "To change: edit .github/workflows/bot.yml in the GitHub repository.",
+      ctrlLeadStatic: "The bot runs in the cloud, so the buttons live on GitHub. Most days you do not need them.",
+      remoteSteps: (url) => `<ol><li>Open <a href="${url}" target="_blank" rel="noopener">the bot's GitHub Actions page</a>.</li><li>Click <b>Run workflow</b>.</li><li>Pick an action and click <b>Run workflow</b> again. This page updates within a minute or two.</li></ol>`,
+      reportsLink: "Daily reports (one per day, in Hebrew)",
+      arenaTitle: "Strategy tournament",
+      arenaLead: (elim, margin, trades) => `Each strategy trades its own virtual account with the same money, coins and risk rules. The main account trades the leader. Once a day another strategy replaces it only if it is ahead by at least ${margin} with at least ${trades} closed trades. A strategy that loses ${elim} of its money is eliminated.`,
+      arenaChampion: (name) => `Champion: ${name}`,
+      arPlace: "#", arStrategy: "Strategy", arValue: "Value", arProfit: "True profit", arTrades: "Trades (won)", arStatus: "Status",
+      arActive: "Active", arOut: "Eliminated", arChamp: "Champion – the main account uses it",
+      arHistory: "Recent strategy switches:",
+      arResearch: (from, to) => `Historical test (${from} to ${to}) on all coins, ranked by return per unit of risk:`,
+      arResearchRow: (name, ret, dd, trades) => `${name}: average return ${ret}, max drawdown ${dd}, ${trades} trades`,
+      arResearchLink: "Full test report",
+      arNoResearch: "The 3-year historical test has not run yet. It runs automatically on the next run and takes about 10 minutes.",
+      remoteNames: "Actions: pause · resume · close-all (sell everything) · reset-halt (release emergency stop) · none (check now).",
+      remoteStop: "To stop the bot completely: on its GitHub Actions page click ⋯ then Disable workflow.",
+      heroOfflineStatic: "Could not load the data", heroOfflineStaticText: "The bot may not have run yet, or GitHub has a temporary problem. Try again in a few minutes.",
+      heroStaleStatic: "GitHub has not run the bot recently", heroStaleStaticText: "GitHub sometimes delays scheduled runs. If this lasts over two hours, check the Actions tab of the repository.",
+      cancel: "Cancel", confirm: "Confirm",
+      lastCheck: (t) => `Last check ${t}`, nextCheck: (m, s) => `next check in ${m}:${s}`, checking: "Checking now…",
+      heroOk: "All good", heroOkWait: "The bot is looking for an opportunity. No open trades right now.",
+      heroOkPos: (n) => `The bot is watching ${n} open trade${n === 1 ? "" : "s"}.`,
+      heroPaper: " Practice mode: virtual money, no risk.", heroLive: " Note: real money mode.",
+      heroOffline: "Cannot reach the bot", heroOfflineText: "Check that the bot's black window is open. If you closed it, run start_bot.bat again.",
+      heroHalted: "Emergency stop: the bot stopped buying", heroHaltedText: "The account fell too far from its peak. Open trades stay protected. Check the journal, then press \"Release emergency stop\".",
+      heroStale: "No recent check", heroStaleText: "The internet may be down or the computer went to sleep.",
+      heroDaily: "Daily loss limit reached", heroDailyText: "No more buys today. The bot resumes at midnight UTC.",
+      heroPaused: "New buys are paused", heroPausedText: "You paused the bot. Open trades stay protected. To continue: \"Resume buying\".",
+      heroErrors: "The last check hit a problem", heroErrorsText: "The bot keeps running. If this repeats, check the internet connection.",
+      heroSync: "Waiting for exchange data", heroSyncText: "No buys until the account balance arrives from the exchange.",
+      confirmCloseAll: "Sell every trade now?", confirmCloseAllText: "All trades close at the market price right away. This cannot be undone.",
+      confirmStop: "Stop the bot?", confirmStopText: "The bot shuts down. To start it again, double-click start_bot.bat.",
+      confirmReset: "Release the emergency stop?", confirmResetText: "The bot starts buying again. The peak restarts from current value.",
+      tokenTitle: "Access password required", tokenText: "Enter DASHBOARD_TOKEN from the .env file.",
+      cfg: [
+        ["mode", "Mode", (v) => v === "live" ? "Real money" : "Practice (virtual money)"],
+        ["symbols", "Coins", (v, f) => v.map((s) => f.coinName(s)).join(", ")],
+        ["timeframe", "Candle size", (v, f) => f.tf(v)],
+        ["loop_interval_minutes", "Checks every", (v) => `${v} minutes`],
+        ["starting_balance", "Starting amount", (v, f) => f.money(v)],
+        ["monthly_deposit", "Monthly deposit (simulated)", (v, f) => v ? f.money(v) : "None", "Like a bank transfer from your account to the crypto wallet"],
+        ["deposit_day", "Deposit day", (v) => `day ${v} of each month (00:00 UTC)`],
+        ["risk_per_trade", "Risk per trade", (v, f) => `${f.pct(v, 1)} of the account`, "The most one trade may lose if its stop is hit"],
+        ["max_notional_pct", "Max per trade", (v, f) => `${f.pct(v, 0)} of the account`],
+        ["daily_max_loss_pct", "Daily loss limit", (v, f) => f.pct(v, 0)],
+        ["max_drawdown_pct", "Emergency stop", (v, f) => `${f.pct(v, 0)} below the peak`],
+        ["allow_short", "Short selling", (v) => v ? "On" : "Off"],
+        ["exchange", "Exchange", (v) => v],
+        ["strategy", "Method", (v) => stratName(v)]
+      ],
+      help: [
+        ["The top bar", "One sentence on whether everything is fine. Green: fine. Yellow: worth a look. Red: needs action."],
+        ["The four numbers", "Account value and change since the start; today; how much is invested; how far from the emergency stop. Each has a ? with an explanation."],
+        ["Your trades", "Each trade has a bar: the loss point (stop) on one side, the profit point (target) on the other, and the marker on the bar is the price now. The bot sells by itself at either end."],
+        ["What the bot is thinking", "For each coin, in plain words: what the bot sees and what must happen before it buys. Usually it says Waiting, which is normal."],
+        ["The journal", "Every buy and sell with the reason. Tick the box to also see the checks where the bot chose to wait."],
+        ["When to press buttons", "Almost never. Pause stops new buys. Sell everything and Stop are for emergencies and ask for confirmation."],
+        ["Words worth knowing", "Stop: a price where the bot sells to limit a loss. Target: a price where it sells to take profit. Uptrend: prices have been rising for weeks. USDT: a digital coin worth one dollar, shown here as $."]
+      ],
+      events: [
+        [/^Bot started in paper mode/, () => "The bot started in practice mode."],
+        [/^Bot started in live mode/, () => "The bot started with real money."],
+        [/^Opened EXECUTE_BUY (\S+) @ ([\d.]+)/, (m, f) => `Bought ${f.coinName(m[1])} at ${f.price(+m[2])}.`],
+        [/^Opened EXECUTE_SELL (\S+) @ ([\d.]+)/, (m, f) => `Sold short ${f.coinName(m[1])} at ${f.price(+m[2])}.`],
+        [/^Closed (long|short) (\S+) \((\w+)\) PnL (-?[\d.]+)/, (m, f) => `Closed ${f.coinName(m[2])}: ${f.reason(m[3])}, ${+m[4] >= 0 ? "gain" : "loss"} ${f.money(Math.abs(+m[4]))}.`],
+        [/market data failed/, (m, f, raw) => `Could not get prices for ${f.coinName(raw.split(":")[0])}. Will retry next check.`],
+        [/^Monthly deposit \+([\d.]+) \S+ \(simulated bank transfer due (\S+)\)\. Total deposited: ([\d.]+)/, (m, f) => `Monthly deposit: ${f.money(+m[1])} moved "from the bank" (due ${m[2]}). Total deposited: ${f.money(+m[3])}.`]
+      ],
+      decisions: [
+        [/^Execute long/, "buy", "Buy: a clear signal, and every safety check passed."],
+        [/^Execute short/, "sell", "Short sell: a clear down signal."],
+        [/^Exit signal closes/, "sell", "Sell: exit signal, the trend weakened."],
+        [/Technical signal is HOLD/, "wait", "Wait: no buy signal right now."],
+        [/already open/, "wait", "Wait: a trade in this coin is already open."],
+        [/limit order is already resting/, "wait", "Wait: a buy order is already waiting."],
+        [/shorting is disabled/, "wait", "Wait: down signal, but short selling is off and there is nothing to sell."],
+        [/paused by the operator/, "wait", "No buy: you paused new buys."],
+        [/Trading halted/, "wait", "No buy: the emergency stop is on."],
+        [/has not synced/, "wait", "No buy: waiting for the exchange balance."],
+        [/circuit breaker/, "wait", "No buy: the daily loss limit was reached."],
+        [/Cooldown/, "wait", "No buy: short pause after a stop in this coin."],
+        [/Max open positions/, "wait", "No buy: enough trades are already open."],
+        [/Sentiment veto/, "wait", "No buy: the market mood is too negative."],
+        [/Combined confidence/, "wait", "No buy: the signal was too weak."],
+        [/Reward:risk/, "wait", "No buy: the possible gain is too small for the risk."],
+        [/Position size is zero/, "wait", "No buy: not enough free money, or the amount is too small."]
+      ]
+    }
+  };
+
+  const storage = {
+    get(k) { try { return localStorage.getItem(k); } catch { return null; } },
+    set(k, v) { try { localStorage.setItem(k, v); } catch {} }
+  };
+  let lang = storage.get("ctb-lang") || "he";
+  let token = storage.get("ctb-token") || "";
+  let state = null;
+  let offline = false;
+  let staticMode = false;  // GitHub Pages: read state.json, no live controls
+  function repoActionsUrl() {
+    // https://OWNER.github.io/REPO/ -> https://github.com/OWNER/REPO/actions/workflows/bot.yml
+    const owner = location.hostname.endsWith(".github.io") ? location.hostname.split(".")[0] : "";
+    const repo = location.pathname.split("/").filter(Boolean)[0] || "";
+    return owner && repo ? `https://github.com/${owner}/${repo}/actions/workflows/bot.yml` : "https://github.com";
+  }
+  const $ = (id) => document.getElementById(id);
+  const t = (k) => T[lang][k];
+
+  // ---------- formatting helpers ----------
+  const locale = () => (lang === "he" ? "he-IL" : "en-US");
+  const quoteSym = () => (state && state.account.quote && !/^USD/.test(state.account.quote) ? state.account.quote + " " : "$");
+  function money(v, digits) {
+    if (v === null || v === undefined || Number.isNaN(v)) return "—";
+    const d = digits ?? (Math.abs(v) >= 1000 ? 0 : 2);
+    const s = new Intl.NumberFormat(locale(), { minimumFractionDigits: d, maximumFractionDigits: d }).format(Math.abs(v));
+    return (v < 0 ? "−" : "") + quoteSym() + s;
+  }
+  function signedMoney(v) { if (v === null || v === undefined) return "—"; return (v > 0 ? "+" : v < 0 ? "−" : "") + money(Math.abs(v)); }
+  function pct(v, digits = 1) {
+    if (v === null || v === undefined || Number.isNaN(v)) return "—";
+    return new Intl.NumberFormat(locale(), { style: "percent", minimumFractionDigits: digits, maximumFractionDigits: digits }).format(v);
+  }
+  function signedPct(v, digits = 1) { return (v > 0 ? "+" : v < 0 ? "−" : "") + pct(Math.abs(v), digits); }
+  function price(v) {
+    if (!v && v !== 0) return "—";
+    const d = v >= 1000 ? 0 : v >= 1 ? 2 : 6;
+    return quoteSym() + new Intl.NumberFormat(locale(), { minimumFractionDigits: d, maximumFractionDigits: d }).format(v);
+  }
+  function when(iso) {
+    if (!iso) return "—";
+    return new Date(iso).toLocaleString(locale(), { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
+  }
+  function ago(iso) {
+    if (!iso) return "—";
+    const s = Math.max(0, (Date.now() - new Date(iso).getTime()) / 1000);
+    const rtf = new Intl.RelativeTimeFormat(locale(), { numeric: "auto" });
+    if (s < 60) return rtf.format(-Math.round(s), "second");
+    if (s < 3600) return rtf.format(-Math.round(s / 60), "minute");
+    if (s < 86400) return rtf.format(-Math.round(s / 3600), "hour");
+    return rtf.format(-Math.round(s / 86400), "day");
+  }
+  function esc(s) { return String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); }
+  const w = (x) => `<bdi>${esc(x)}</bdi>`;
+  function cls(v) { return v > 0 ? "pos" : v < 0 ? "neg" : ""; }
+  function base(symbol) { return String(symbol || "").split("/")[0].split(":")[0]; }
+  function coinName(symbol) {
+    const b = base(symbol);
+    const c = COINS[b];
+    return c ? `${c[lang]} (${b})` : b;
+  }
+  function shortCoin(symbol) { const b = base(symbol); const c = COINS[b]; return c ? c[lang] : b; }
+  const tf = (v) => t("tfLabel")(v);
+  const reason = (r) => t("reasons")[r] || r;
+  const F = { money, price, pct, coinName, tf, reason, when };
+  const STRATS = {
+    trend: { he: "מעקב מגמה", en: "Trend following" }, trend_fast: { he: "מעקב מגמה מהיר", en: "Fast trend following" },
+    ema_cross: { he: "חציית ממוצעים", en: "Moving-average cross" }, rsi_dip: { he: "קנייה בירידה זמנית", en: "Buy the dip (RSI)" },
+    bb_squeeze: { he: "פריצה אחרי שקט", en: "Breakout after a quiet period" }, macd_trend: { he: "מומנטום MACD", en: "MACD momentum" },
+    legacy: { he: "השיטה המקורית", en: "Original mix" }
+  };
+  function stratName(v) { return (STRATS[v] && STRATS[v][lang]) || v || "—"; }
+
+  function meter(id, frac, kind) {
+    const el = $(id);
+    const f = Math.max(0, Math.min(1, frac || 0));
+    el.className = "meter " + (kind || "");
+    el.firstElementChild.style.width = (f * 100).toFixed(1) + "%";
+  }
+
+  // ---------- language ----------
+  function applyLang() {
+    document.documentElement.lang = lang;
+    document.documentElement.dir = lang === "he" ? "rtl" : "ltr";
+    document.querySelectorAll("[data-i18n]").forEach((el) => { const v = t(el.dataset.i18n); if (typeof v === "string") el.textContent = v; });
+    document.querySelectorAll("[data-i18n-tip]").forEach((el) => { el.dataset.tip = t(el.dataset.i18nTip); el.setAttribute("aria-label", t(el.dataset.i18nTip)); });
+    $("langBtn").textContent = lang === "he" ? "English" : "עברית";
+    $("helpBody").innerHTML = t("help").map(([h, p]) => `<h4>${esc(h)}</h4><p>${esc(p)}</p>`).join("")
+      + `<p style="margin-top:14px"><a href="${GUIDE_URL}" target="_blank" rel="noopener">${esc(t("fullGuide"))}</a></p>`;
+    if (state) render(state);
+  }
+
+  // ---------- status hero ----------
+  function hero(s) {
+    const st = s.status, a = s.account, cfg = s.config;
+    const modeNote = st.mode === "live" ? t("heroLive") : t("heroPaper");
+    const staleAfter = staticMode ? 75 * 60000 : cfg.loop_interval_minutes * 60000 * 2.5;
+    const stale = st.last_cycle_finished && !st.cycle_running && (Date.now() - new Date(st.last_cycle_finished)) > staleAfter;
+    if (st.halted_reason) return ["bad", "!", t("heroHalted"), t("heroHaltedText")];
+    if (stale) return staticMode ? ["warn", "!", t("heroStaleStatic"), t("heroStaleStaticText")] : ["warn", "!", t("heroStale"), t("heroStaleText")];
+    if (!st.balance_synced) return ["warn", "…", t("heroSync"), t("heroSyncText")];
+    if (a.day_drawdown_pct >= a.daily_limit_pct - 1e-9) return ["warn", "!", t("heroDaily"), t("heroDailyText")];
+    if (st.paused) return ["warn", "II", t("heroPaused"), t("heroPausedText")];
+    if (s.errors && s.errors.length) return ["warn", "!", t("heroErrors"), t("heroErrorsText") + modeNote];
+    const n = s.positions.length;
+    return ["good", "✓", t("heroOk"), (n ? t("heroOkPos")(n) : t("heroOkWait")) + modeNote];
+  }
+
+  function updateWhen() {
+    if (!state || offline) return;
+    const st = state.status;
+    let txt = t("lastCheck")(ago(st.last_cycle_finished));
+    if (st.cycle_running) txt += " · " + t("checking");
+    else if (st.next_cycle_at) {
+      const secs = Math.max(0, Math.round((new Date(st.next_cycle_at) - Date.now()) / 1000));
+      txt += " · " + t("nextCheck")(Math.floor(secs / 60), String(secs % 60).padStart(2, "0"));
+    }
+    $("heroWhen").textContent = txt;
+  }
+
+  function setHero(kind, icon, title, text) {
+    $("hero").className = "hero " + kind;
+    $("heroLight").textContent = icon;
+    $("heroTitle").textContent = title;
+    $("heroText").textContent = text;
+  }
+
+  // ---------- render ----------
+  function render(s) {
+    const open = new Set([...document.querySelectorAll("details[open][data-key]")].map((d) => d.dataset.key));
+    state = s;
+    offline = false;
+    const a = s.account, st = s.status, cfg = s.config;
+
+    const mc = $("modeChip");
+    mc.className = "chip " + (st.mode === "live" ? "bad" : "info");
+    mc.textContent = st.mode === "live" ? t("live") : t("paper");
+
+    setHero(...hero(s));
+    updateWhen();
+
+    // KPIs
+    $("kEquity").textContent = money(a.equity, 0);
+    const chg = a.total_change, chgPct = a.baseline ? chg / a.baseline : 0;
+    $("kEquitySub").innerHTML = `<span class="${cls(chg)}">${t("sinceStart")(w(signedMoney(chg)), w(signedPct(chgPct)), w(money(a.baseline, 0)))}</span>`;
+    const dep = $("kDeposit");
+    dep.hidden = !(a.monthly_deposit > 0 && a.next_deposit_at);
+    if (!dep.hidden) dep.innerHTML = t("nextDeposit")(w(money(a.monthly_deposit, 0)),
+      esc(new Date(a.next_deposit_at).toLocaleDateString(locale(), { day: "numeric", month: "long", timeZone: "UTC" })));
+
+    const today = $("kToday");
+    today.textContent = signedMoney(a.day_pnl);
+    today.className = "value num " + cls(a.day_pnl);
+    const limitMoney = a.day_start_equity * a.daily_limit_pct;
+    const used = a.day_drawdown_pct / a.daily_limit_pct;
+    $("kTodaySub").innerHTML = Math.abs(a.day_pnl) < 0.005 ? esc(t("todayFlat")) : t("dailyLimitUsed")(w(pct(Math.min(1, used), 0)), w(money(limitMoney, 0)));
+    meter("mToday", used, used >= 0.9 ? "bad" : used >= 0.5 ? "warn" : "");
+
+    $("kInvested").textContent = pct(a.exposure_pct, 0);
+    $("kInvestedSub").innerHTML = t("investedSub")(w(money(a.open_notional, 0)), s.positions.length);
+    meter("mInvested", a.exposure_pct / Math.max(cfg.max_total_exposure_pct, 1e-9), "info");
+
+    const ddFrac = a.peak_drawdown_pct / a.max_drawdown_pct;
+    const safety = $("kSafety");
+    if (st.halted_reason) { safety.textContent = t("safetyStop"); safety.className = "value neg"; }
+    else if (ddFrac >= 0.5) { safety.textContent = t("safetyWatch"); safety.className = "value"; safety.style.color = "var(--warn)"; }
+    else { safety.textContent = t("safetyOk"); safety.className = "value pos"; safety.style.color = ""; }
+    $("kSafetySub").innerHTML = t("safetySub")(w(pct(a.peak_drawdown_pct, 1)), w(pct(a.max_drawdown_pct, 0)));
+    meter("mSafety", ddFrac, ddFrac >= 0.75 ? "bad" : ddFrac >= 0.5 ? "warn" : "");
+
+    $("controlsBox").hidden = staticMode;
+    $("remoteBox").hidden = !staticMode;
+    if (staticMode) {
+      $("ctrlLead").textContent = t("ctrlLeadStatic");
+      $("remoteBox").innerHTML = t("remoteSteps")(esc(repoActionsUrl())) + `<div class="ctrl-names">${esc(t("remoteNames"))}</div><div class="ctrl-names">${esc(t("remoteStop"))}</div><div><a href="reports/">${esc(t("reportsLink"))}</a></div>`;
+      document.querySelector("footer").textContent = t("footerStatic");
+      document.querySelector("[data-i18n=cfgLead]").textContent = t("cfgLeadStatic");
+    }
+    $("btnPause").disabled = !!st.paused;
+    $("btnResume").disabled = !st.paused;
+    $("resetRow").hidden = !st.halted_reason;
+
+    renderPositions(s);
+    renderThinking(s);
+    renderJournal(s);
+    renderTrades(s);
+    renderEvents(s);
+    renderConfig(cfg);
+    renderArena(s);
+    renderChart(s.equity, a.baseline, s.deposits);
+    document.querySelectorAll("details[data-key]").forEach((d) => { if (open.has(d.dataset.key)) d.open = true; });
+  }
+
+  function renderPositions(s) {
+    const rows = s.positions;
+    $("posCount").textContent = rows.length;
+    if (!rows.length) { $("positions").innerHTML = `<div class="empty">${esc(t("posNone"))}</div>`; return; }
+    const live = s.status.mode === "live";
+    $("positions").innerHTML = rows.map((p) => {
+      const title = (p.side === "long" ? t("bought") : t("sold"))(coinName(p.symbol), price(p.entry));
+      const pos = (p.progress * 100).toFixed(1);
+      const protectedTxt = p.exchange_protected ? (live ? t("protectedEx") : t("protectedSim")) : t("unprotected");
+      const stopFirst = p.side === "long";
+      const left = stopFirst ? `<span class="stop">${t("stopLbl")(w(price(p.stop_loss)), w(money(p.loss_at_stop, 0)))}</span>` : `<span class="target">${t("targetLbl")(w(price(p.take_profit)), w(money(p.gain_at_target, 0)))}</span>`;
+      const right = stopFirst ? `<span class="target">${t("targetLbl")(w(price(p.take_profit)), w(money(p.gain_at_target, 0)))}</span>` : `<span class="stop">${t("stopLbl")(w(price(p.stop_loss)), w(money(p.loss_at_stop, 0)))}</span>`;
+      return `<div class="pos-card">
+        <div class="pos-top"><span class="pos-title">${esc(title)}</span>
+          <span class="pos-pnl num ${cls(p.unrealized)}">${esc(signedMoney(p.unrealized))} (${esc(signedPct(p.unrealized_pct))})</span></div>
+        <div class="range" aria-hidden="true"><span class="marker" style="left:${pos}%"></span><span class="now num" style="left:${Math.min(92, Math.max(8, +pos))}%">${esc(t("nowAt")(price(p.mark)))}</span></div>
+        <div class="range-labels">${left}${right}</div>
+        <div class="pos-foot"><span class="${p.exchange_protected ? "pos" : "neg"}">${esc(protectedTxt)}</span>
+          <span>${esc(t("invested")(money(p.notional, 0)))}</span><span>${esc(t("openedAgo")(ago(p.opened_at)))}</span></div>
+      </div>`;
+    }).join("");
+  }
+
+  function signalSentence(x, cfg) {
+    const ind = x.indicators || {};
+    const tfl = tf(cfg.timeframe);
+    if (/Insufficient|no candles/i.test(x.reasoning)) return [t("stCollect"), "", t("sCollect")];
+    if (x.strategy !== "trend" || ind.upper === undefined) {
+      const st = x.action === "BUY" ? t("stBuy") : x.action === "SELL" ? t("stSell") : t("stWait");
+      return [st, x.action === "BUY" ? "good" : x.action === "SELL" ? "bad" : "", t("sLegacy")[x.action] || ""];
+    }
+    if (x.action === "BUY") return [t("stBuy"), "good", t("sBuy")];
+    if (x.action === "SELL") return [t("stSell"), "bad", t("sSellShort")];
+    const up = ind.ema_fast > ind.ema_slow && ind.close > ind.ema_slow;
+    const down = ind.ema_fast < ind.ema_slow && ind.close < ind.ema_slow;
+    let text;
+    if (up) {
+      const dist = (ind.upper - x.price) / x.price;
+      text = dist > 0 ? t("sUpWait")(price(ind.upper), pct(dist, 1), tfl) : t("sUpAbove")(price(ind.upper), tfl);
+    } else text = down ? t("sDown") : t("sFlat");
+    if (x.exit_long) return [t("stExit"), "warn", text + " " + t("sExit")];
+    return [t("stWait"), "", text];
+  }
+
+  function renderThinking(s) {
+    const cfg = s.config;
+    $("thinkLead").textContent = t("thinkLead")(tf(cfg.timeframe));
+    const rows = s.signals.map((x) => {
+      const [status, kind, text] = signalSentence(x, cfg);
+      return `<div class="think-row">
+        <div class="coin" aria-hidden="true">${esc(base(x.symbol).slice(0, 4))}</div>
+        <div class="think-body">
+          <div class="think-head"><b>${esc(shortCoin(x.symbol))}</b><span class="chip ${kind}">${esc(status)}</span><span class="num" style="color:var(--text-2)">${esc(price(x.price))}</span></div>
+          <div class="think-text">${esc(text)}</div>
+          <details data-key="sig-${esc(x.symbol)}"><summary>${esc(t("techDetails"))}</summary><p>${esc(x.reasoning)}</p></details>
+        </div></div>`;
+    });
+    const se = s.sentiment;
+    if (se) {
+      const kind = se.bias === "BULLISH" ? "good" : se.bias === "BEARISH" ? "bad" : "";
+      rows.push(`<div class="think-row">
+        <div class="coin" aria-hidden="true">☀</div>
+        <div class="think-body">
+          <div class="think-head"><b>${esc(t("moodTitle"))}</b><span class="chip ${kind}">${esc(t("mood")[se.bias] || se.bias)}</span></div>
+          <div class="think-text">${esc(t("moodText")(se.fear_greed))}</div>
+          <details data-key="mood"><summary>${esc(t("techDetails"))}</summary><p>${esc(se.reasoning)}</p></details>
+        </div></div>`);
+    }
+    $("think").innerHTML = rows.length ? rows.join("") : `<div class="empty">${esc(t("sCollect"))}</div>`;
+  }
+
+  function explainDecision(d) {
+    for (const [re, kind, text] of t("decisions")) if (re.test(d.reasoning)) return [kind, text];
+    if (d.action === "EXECUTE_BUY") return ["buy", t("decisions")[0][2]];
+    if (d.action === "EXECUTE_SELL") return ["sell", t("decisions")[2][2]];
+    return ["wait", t("decisions")[3][2]];
+  }
+
+  function renderJournal(s) {
+    const act = s.activity_24h || {};
+    const total = Object.values(act).reduce((x, y) => x + y, 0);
+    $("journalLead").textContent = t("journalLead")(total, act.EXECUTE_BUY || 0, act.EXECUTE_SELL || 0);
+    const showWaits = $("showWaits").checked;
+    const rows = s.decisions.filter((d) => showWaits || d.action !== "NO_ACTION").slice(0, 25);
+    if (!rows.length) { $("journal").innerHTML = `<li class="empty" style="width:100%">${esc(s.decisions.length ? t("journalEmpty") : t("journalNone"))}</li>`; return; }
+    $("journal").innerHTML = rows.map((d) => {
+      const [kind, text] = explainDecision(d);
+      const ico = kind === "buy" ? "↑" : kind === "sell" ? "↓" : "·";
+      return `<li><span class="ico ${kind}" aria-hidden="true">${ico}</span><div style="min-width:0;flex:1">
+        <div><b>${esc(shortCoin(d.symbol))}</b> · ${esc(text)}</div>
+        <div class="when">${esc(when(d.ts))} · <span class="num">${esc(price(d.price))}</span></div>
+        <details data-key="dec-${esc(d.ts)}-${esc(d.symbol)}"><summary>${esc(t("techDetails"))}</summary><p>${esc(d.reasoning)}</p></details>
+      </div></li>`;
+    }).join("");
+  }
+
+  function renderTrades(s) {
+    const rows = s.trades;
+    const wins = rows.filter((x) => x.pnl > 0).length;
+    const total = rows.reduce((x, r) => x + r.pnl, 0);
+    $("tradeCount").textContent = rows.length;
+    $("tradesLead").textContent = t("tradesLead")(rows.length, wins, signedMoney(total));
+    $("trades").innerHTML = rows.length ? rows.map((x) => {
+      const ret = x.entry ? ((x.side === "long" ? x.exit_price - x.entry : x.entry - x.exit_price) / x.entry) : 0;
+      return `<tr>
+        <td style="color:var(--text-2)">${esc(when(x.closed_at))}</td>
+        <td><b>${esc(shortCoin(x.symbol))}</b></td>
+        <td class="num ${cls(x.pnl)}"><b>${x.pnl >= 0 ? "✓" : "✗"} ${esc(signedMoney(x.pnl))}</b> <span style="color:var(--text-2)">(${esc(signedPct(ret))})</span></td>
+        <td class="num">${esc(price(x.entry))} → ${esc(price(x.exit_price))}</td>
+        <td>${esc(reason(x.reason))}</td>
+      </tr>`;
+    }).join("") : `<tr><td colspan="5"><div class="empty">${esc(t("tradesLead")(0))}</div></td></tr>`;
+  }
+
+  function translateEvent(msg) {
+    for (const [re, fn] of t("events")) { const m = msg.match(re); if (m) return fn(m, F, msg); }
+    return msg;
+  }
+
+  function renderEvents(s) {
+    const rows = s.events;
+    $("events").innerHTML = rows.length ? rows.map((e) =>
+      `<li><span class="dot ${esc(e.level)}" aria-hidden="true"></span><div><div class="when" style="color:var(--muted);font-size:12.5px">${esc(when(e.ts))}</div><div dir="auto">${esc(translateEvent(e.message))}</div></div></li>`
+    ).join("") : `<li><div class="empty" style="width:100%">${esc(t("eventsNone"))}</div></li>`;
+  }
+
+  function renderArena(s) {
+    const ar = s.arena;
+    $("arenaCard").hidden = !(ar && ar.standings && ar.standings.length);
+    if ($("arenaCard").hidden) return;
+    const r = ar.rules || {};
+    $("arenaLead").textContent = t("arenaLead")(pct(r.eliminate_loss_pct ?? 0.1, 0), pct(r.switch_margin ?? 0.02, 0), r.min_trades ?? 3);
+    $("arenaChampion").textContent = t("arenaChampion")(stratName(ar.champion));
+    $("arenaRows").innerHTML = ar.standings.map((x, i) => {
+      const out = x.status !== "active";
+      const status = out ? t("arOut") : x.champion ? t("arChamp") : t("arActive");
+      return `<tr class="${x.champion ? "champ" : ""} ${out ? "out" : ""}">
+        <td>${i + 1}</td><td>${esc(stratName(x.strategy))}</td>
+        <td class="num">${esc(money(x.equity, 0))}</td>
+        <td class="num ${cls(x.true_profit)}">${esc(signedMoney(x.true_profit))} (${esc(signedPct(x.true_profit_pct, 2))})</td>
+        <td class="num">${esc(x.trades)} (${esc(x.wins)})</td>
+        <td><span class="chip ${x.champion ? "good" : out ? "bad" : ""}">${esc(status)}</span></td></tr>`;
+    }).join("");
+    const hist = (ar.history || []).filter((h) => h.from).slice(-5).reverse();
+    $("arenaHistory").innerHTML = hist.length ? `${esc(t("arHistory"))}<ul>${hist.map((h) =>
+      `<li>${esc(when(h.at))}: ${esc(stratName(h.from))} ← ${esc(stratName(h.to))}${lang === "en" && h.reason ? ". " + esc(h.reason) : ""}</li>`).join("")}</ul>` : "";
+    const rs = ar.research;
+    if (rs && rs.ranking && rs.ranking.length) {
+      const rows = rs.ranking.slice(0, 7).map((x) => `<li>${t("arResearchRow")(esc(stratName(x.strategy)), w(signedPct(x.avg_return || 0, 1)), w(pct(x.avg_max_drawdown || 0, 1)), w(x.trades))}</li>`).join("");
+      $("arenaResearch").innerHTML = `${esc(t("arResearch")(rs.period?.from || "", rs.period?.to || ""))}<ul>${rows}</ul><a href="research/" target="_blank" rel="noopener">${esc(t("arResearchLink"))}</a>`;
+    } else {
+      $("arenaResearch").textContent = t("arNoResearch");
+    }
+  }
+
+  function renderConfig(cfg) {
+    $("config").innerHTML = t("cfg").filter(([k]) => k in cfg).map(([k, label, fmt, hint]) =>
+      `<dt>${esc(label)}</dt><dd>${esc(fmt(cfg[k], F))}${hint ? `<small>${esc(hint)}</small>` : ""}</dd>`).join("");
+  }
+
+  // ---------- chart: one series + dashed starting line, hover crosshair ----------
+  function renderChart(points, baseline, deposits) {
+    // Money put in at each moment: initial balance plus every deposit made so far.
+    const deps = (deposits || []).map((d) => [new Date(d.ts).getTime(), d.amount]).sort((p, q) => p[0] - q[0]);
+    const putIn = (ms) => deps.length ? deps.reduce((sum, [ts, amt], i) => sum + (ts <= ms || i === 0 ? amt : 0), 0) : baseline;
+    const svg = $("chart"), box = $("chartBox");
+    const W = box.clientWidth || 600, H = 230, padL = 8, padR = 70, padT = 12, padB = 24;
+    svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+    if (!points || points.length < 2) {
+      svg.innerHTML = `<text x="${W / 2}" y="${H / 2}" text-anchor="middle" fill="var(--muted)" font-size="14">${esc(t("chartEmpty"))}</text>`;
+      return;
+    }
+    const xs = points.map((p) => new Date(p.ts).getTime());
+    const ys = points.map((p) => p.equity);
+    const bs = xs.map(putIn);
+    let lo = Math.min(...ys, ...bs), hi = Math.max(...ys, ...bs);
+    if (hi - lo < 1e-9) { lo -= 1; hi += 1; }
+    const pad = (hi - lo) * 0.1; lo -= pad; hi += pad;
+    const x0 = xs[0], x1 = xs[xs.length - 1] === x0 ? x0 + 1 : xs[xs.length - 1];
+    const X = (v) => padL + (v - x0) / (x1 - x0) * (W - padL - padR);
+    const Y = (v) => padT + (1 - (v - lo) / (hi - lo)) * (H - padT - padB);
+    let grid = "";
+    for (let i = 0; i <= 4; i++) {
+      const v = lo + (hi - lo) * i / 4, y = Y(v);
+      grid += `<line x1="${padL}" x2="${W - padR}" y1="${y}" y2="${y}" stroke="var(--grid)"/><text x="${W - padR + 6}" y="${y + 4}" fill="var(--muted)" font-size="11">${esc(money(v, 0))}</text>`;
+    }
+    const d = xs.map((x, i) => `${i ? "L" : "M"}${X(x).toFixed(1)},${Y(ys[i]).toFixed(1)}`).join("");
+    const area = d + `L${X(x1).toFixed(1)},${H - padB}L${X(x0).toFixed(1)},${H - padB}Z`;
+    const step = xs.map((x, i) => `${i ? `L${X(x).toFixed(1)},${Y(bs[i - 1]).toFixed(1)}L` : "M"}${X(x).toFixed(1)},${Y(bs[i]).toFixed(1)}`).join("");
+    svg.innerHTML = `
+      <defs><linearGradient id="fillGrad" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="var(--accent)" stop-opacity=".16"/><stop offset="1" stop-color="var(--accent)" stop-opacity="0"/></linearGradient></defs>
+      ${grid}
+      <path d="${area}" fill="url(#fillGrad)"/>
+      <path d="${step}" fill="none" stroke="var(--muted)" stroke-width="1.5" stroke-dasharray="5 4"/>
+      <path d="${d}" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+      <text x="${padL}" y="${H - 6}" fill="var(--muted)" font-size="11">${esc(when(new Date(x0).toISOString()))}</text>
+      <text x="${W - padR}" y="${H - 6}" fill="var(--muted)" font-size="11" text-anchor="end">${esc(when(new Date(x1).toISOString()))}</text>
+      <line id="cross" y1="${padT}" y2="${H - padB}" stroke="var(--text-2)" stroke-dasharray="3 3" visibility="hidden"/>
+      <circle id="cdot" r="5" fill="var(--accent)" stroke="var(--surface)" stroke-width="2" visibility="hidden"/>
+      <rect id="hit" x="${padL}" y="0" width="${W - padL - padR}" height="${H}" fill="transparent"/>`;
+    const tip = $("tip"), cross = svg.querySelector("#cross"), dot = svg.querySelector("#cdot"), hit = svg.querySelector("#hit");
+    hit.addEventListener("mousemove", (ev) => {
+      const r = svg.getBoundingClientRect();
+      const tv = x0 + ((ev.clientX - r.left) * (W / r.width) - padL) / (W - padL - padR) * (x1 - x0);
+      let i = 0, best = Infinity;
+      xs.forEach((x, k) => { const dd = Math.abs(x - tv); if (dd < best) { best = dd; i = k; } });
+      const cx = X(xs[i]), cy = Y(ys[i]);
+      cross.setAttribute("x1", cx); cross.setAttribute("x2", cx); cross.setAttribute("visibility", "visible");
+      dot.setAttribute("cx", cx); dot.setAttribute("cy", cy); dot.setAttribute("visibility", "visible");
+      const diff = ys[i] - bs[i];
+      tip.innerHTML = `<div style="color:var(--muted)">${esc(when(points[i].ts))}</div><b>${esc(money(ys[i], 0))}</b> <span class="${cls(diff)}">${esc(signedMoney(diff))}</span>`;
+      tip.style.display = "block";
+      const px = cx * r.width / W, py = cy * r.height / H, tw = tip.offsetWidth;
+      tip.style.left = Math.min(Math.max(0, px - tw / 2), r.width - tw) + "px";
+      tip.style.top = Math.max(0, py - 54) + "px";
+    });
+    hit.addEventListener("mouseleave", () => { tip.style.display = "none"; cross.setAttribute("visibility", "hidden"); dot.setAttribute("visibility", "hidden"); });
+  }
+
+  // ---------- dialogs ----------
+  function modal({ title, text, input = false, danger = false }) {
+    return new Promise((resolve) => {
+      $("modalTitle").textContent = title;
+      $("modalText").textContent = text;
+      const inp = $("modalInput");
+      inp.style.display = input ? "block" : "none";
+      inp.value = "";
+      const ok = $("modalOk");
+      ok.className = danger ? "danger" : "primary";
+      $("modalBg").style.display = "flex";
+      (input ? inp : ok).focus();
+      const done = (v) => { $("modalBg").style.display = "none"; ok.onclick = null; $("modalCancel").onclick = null; resolve(v); };
+      ok.onclick = () => done(input ? inp.value : true);
+      $("modalCancel").onclick = () => done(null);
+      inp.onkeydown = (e) => { if (e.key === "Enter") done(inp.value); };
+    });
+  }
+  function toast(msg) {
+    const el = $("toast");
+    el.textContent = msg;
+    el.style.display = "block";
+    clearTimeout(toast._t);
+    toast._t = setTimeout(() => { el.style.display = "none"; }, 5000);
+  }
+
+  async function api(path, opts = {}) {
+    const headers = Object.assign({}, opts.headers || {});
+    if (token) headers["X-Dashboard-Token"] = token;
+    const res = await fetch(path, Object.assign({}, opts, { headers }));
+    if (res.status === 403) throw Object.assign(new Error("forbidden"), { status: 403 });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return res.json();
+  }
+
+  let asking = false;
+  async function loadState() {
+    let first = null;
+    if (!staticMode) {
+      try { return await api("/api/state"); }
+      catch (err) { if (err.status === 403) throw err; first = err; }
+    }
+    // No bot process behind this page (GitHub Pages): read the snapshot the last run wrote.
+    let s;
+    try {
+      const res = await fetch(`state.json?t=${Date.now()}`, { cache: "no-store" });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      s = await res.json();
+    } catch (err) { throw first || err; }
+    if (!s || !s.static) throw first || new Error("not a snapshot");
+    if (!staticMode) { staticMode = true; clearInterval(timer); timer = setInterval(refresh, 60000); }
+    return s;
+  }
+  async function refresh() {
+    try {
+      render(await loadState());
+    } catch (err) {
+      if (err.status === 403 && !asking) {
+        asking = true;
+        const v = await modal({ title: t("tokenTitle"), text: t("tokenText"), input: true });
+        asking = false;
+        if (v) { token = v.trim(); storage.set("ctb-token", token); refresh(); }
+        return;
+      }
+      offline = true;
+      const remote = staticMode || location.hostname.endsWith(".github.io");
+      setHero("bad", "!", remote ? t("heroOfflineStatic") : t("heroOffline"), remote ? t("heroOfflineStaticText") : t("heroOfflineText"));
+      $("heroWhen").textContent = "";
+    }
+  }
+
+  const ACTION_TOAST = {
+    he: { pause: "קניות חדשות הושהו.", resume: "הבוט חזר לקנות כרגיל.", "run-now": "מריץ בדיקה עכשיו…", "reset-halt": "עצירת החירום שוחררה.", "stop": "הבוט נעצר.", "close-all": "כל העסקאות נסגרו." },
+    en: { pause: "New buys paused.", resume: "Buying resumed.", "run-now": "Running a check now…", "reset-halt": "Emergency stop released.", "stop": "The bot is stopping.", "close-all": "All trades closed." }
+  };
+  async function act(action, confirmKey) {
+    if (confirmKey) {
+      const ok = await modal({ title: t(confirmKey), text: t(confirmKey + "Text"), danger: action !== "reset-halt" });
+      if (!ok) return;
+    }
+    try {
+      const r = await api(`/api/control/${action}`, { method: "POST", headers: { "X-Requested-With": "ctb-dashboard" } });
+      toast(lang === "en" ? r.message : (ACTION_TOAST.he[action] || r.message));
+      setTimeout(refresh, 700);
+      if (action === "run-now") setTimeout(refresh, 6000);
+    } catch (err) {
+      toast(String(err.message || err));
+    }
+  }
+
+  $("btnPause").onclick = () => act("pause");
+  $("btnResume").onclick = () => act("resume");
+  $("btnRun").onclick = () => act("run-now");
+  $("btnReset").onclick = () => act("reset-halt", "confirmReset");
+  $("btnCloseAll").onclick = () => act("close-all", "confirmCloseAll");
+  $("btnStop").onclick = () => act("stop", "confirmStop");
+  $("showWaits").onchange = () => { storage.set("ctb-waits", $("showWaits").checked ? "1" : ""); if (state) renderJournal(state); };
+  $("showWaits").checked = storage.get("ctb-waits") === "1";
+  $("helpBtn").onclick = () => { $("helpBg").style.display = "flex"; $("helpClose").focus(); };
+  $("helpClose").onclick = () => { $("helpBg").style.display = "none"; };
+  $("helpBg").onclick = (e) => { if (e.target === $("helpBg")) $("helpBg").style.display = "none"; };
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape") $("helpBg").style.display = "none"; });
+  $("langBtn").onclick = () => { lang = lang === "he" ? "en" : "he"; storage.set("ctb-lang", lang); applyLang(); };
+  window.addEventListener("resize", () => { if (state) renderChart(state.equity, state.account.baseline, state.deposits); });
+
+  applyLang();
+  if (!storage.get("ctb-seen-help")) { storage.set("ctb-seen-help", "1"); $("helpBg").style.display = "flex"; }
+  let timer = setInterval(refresh, 10000);
+  refresh();
+  setInterval(updateWhen, 1000);
+})();
+</script>
+</body>
+</html>

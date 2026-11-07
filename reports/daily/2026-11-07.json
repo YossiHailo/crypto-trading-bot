@@ -1,0 +1,244 @@
+{
+  "date": "2026-11-07",
+  "timezone": "Asia/Jerusalem",
+  "window": {
+    "from_utc": "2026-11-06T22:00:00+00:00",
+    "to_utc": "2026-11-07T20:15:06.205766+00:00",
+    "complete_day": false
+  },
+  "uptime": {
+    "checks_ran": 94,
+    "checks_expected": 89,
+    "coverage_pct": 100.0,
+    "downtime_minutes": 0,
+    "gaps": [],
+    "last_check": "2026-11-07T20:15:04.792866+00:00"
+  },
+  "account": {
+    "start": 1079.712405984546,
+    "end": 1079.712405984546,
+    "deposited_today": 0,
+    "deposited_total": 1100.0,
+    "change": 0.0,
+    "change_pct": 0.0,
+    "low": 1079.712405984546,
+    "high": 1079.712405984546,
+    "baseline": 1100.0,
+    "since_start": -20.287594015454033,
+    "since_start_pct": -1.8443267286776366,
+    "drawdown_from_peak_pct": 0.0,
+    "cash_end": 1079.712405984546,
+    "paused": false,
+    "halted_reason": null
+  },
+  "trades": {
+    "opened": 0,
+    "closed": 0,
+    "wins": 0,
+    "pnl": 0,
+    "closed_list": [],
+    "opened_list": [],
+    "open_at_end": []
+  },
+  "decisions": {
+    "total": 470,
+    "by_reason": {
+      "אין אות": 453,
+      "אות ירידה, מכירה בחסר כבויה": 17
+    }
+  },
+  "coins": {
+    "BTC/USDT": {
+      "checks": 94,
+      "signals": {
+        "HOLD": 94
+      },
+      "price_first": 75928.01,
+      "price_last": 75799.0,
+      "price_low": 75709.29,
+      "price_high": 76195.0,
+      "move_pct": -0.17,
+      "trend_at_end": "down",
+      "buy_trigger_at_end": 81196.01,
+      "exit_level_at_end": 74888.0,
+      "closest_to_buy_trigger_pct": null,
+      "exit_signals": 0,
+      "last_reasoning": "Technical signal is HOLD. Technical HOLD confidence 0.00."
+    },
+    "ETH/USDT": {
+      "checks": 94,
+      "signals": {
+        "HOLD": 94
+      },
+      "price_first": 2241.06,
+      "price_last": 2235.36,
+      "price_low": 2232.76,
+      "price_high": 2250.64,
+      "move_pct": -0.25,
+      "trend_at_end": "down",
+      "buy_trigger_at_end": 2450.0,
+      "exit_level_at_end": 2210.0,
+      "closest_to_buy_trigger_pct": null,
+      "exit_signals": 0,
+      "last_reasoning": "Technical signal is HOLD. Technical HOLD confidence 0.00."
+    },
+    "SOL/USDT": {
+      "checks": 94,
+      "signals": {
+        "HOLD": 94
+      },
+      "price_first": 90.36,
+      "price_last": 89.65,
+      "price_low": 89.4,
+      "price_high": 90.64,
+      "move_pct": -0.79,
+      "trend_at_end": "down",
+      "buy_trigger_at_end": 98.14,
+      "exit_level_at_end": 88.94,
+      "closest_to_buy_trigger_pct": null,
+      "exit_signals": 0,
+      "last_reasoning": "Technical signal is HOLD. Technical HOLD confidence 0.00."
+    },
+    "BNB/USDT": {
+      "checks": 94,
+      "signals": {
+        "HOLD": 94
+      },
+      "price_first": 693.99,
+      "price_last": 697.28,
+      "price_low": 693.2,
+      "price_high": 697.28,
+      "move_pct": 0.47,
+      "trend_at_end": "down",
+      "buy_trigger_at_end": 723.42,
+      "exit_level_at_end": 686.51,
+      "closest_to_buy_trigger_pct": null,
+      "exit_signals": 0,
+      "last_reasoning": "Technical signal is HOLD. Technical HOLD confidence 0.00."
+    },
+    "XRP/USDT": {
+      "checks": 94,
+      "signals": {
+        "HOLD": 77,
+        "SELL": 17
+      },
+      "price_first": 1.1798,
+      "price_last": 1.1624,
+      "price_low": 1.1528,
+      "price_high": 1.1828,
+      "move_pct": -1.47,
+      "trend_at_end": "down",
+      "buy_trigger_at_end": 1.3414,
+      "exit_level_at_end": 1.1519,
+      "closest_to_buy_trigger_pct": null,
+      "exit_signals": 0,
+      "last_reasoning": "Technical signal is HOLD. Technical HOLD confidence 0.00."
+    }
+  },
+  "sentiment": {
+    "min": -0.55,
+    "max": -0.5,
+    "avg": -0.523
+  },
+  "warnings": [],
+  "warning_count": 0,
+  "cumulative": {
+    "running_since": "2026-10-11T13:07:23.586653+00:00",
+    "days_running": 27.3,
+    "trades": 2,
+    "wins": 0,
+    "pnl": -20.29,
+    "checks_total": 2717
+  },
+  "arena": {
+    "champion": "trend",
+    "standings": [
+      {
+        "strategy": "rsi_dip",
+        "label_he": "קנייה בירידה זמנית",
+        "status": "active",
+        "equity": 1100.0,
+        "deposits": 1100.0,
+        "true_profit": 0.0,
+        "true_profit_pct": 0.0,
+        "trades": 0,
+        "wins": 0,
+        "champion": false
+      },
+      {
+        "strategy": "trend_fast",
+        "label_he": "מעקב מגמה מהיר",
+        "status": "active",
+        "equity": 1094.1,
+        "deposits": 1100.0,
+        "true_profit": -5.9,
+        "true_profit_pct": -0.0053613340147297675,
+        "trades": 1,
+        "wins": 0,
+        "champion": false
+      },
+      {
+        "strategy": "trend",
+        "label_he": "מעקב מגמה",
+        "status": "active",
+        "equity": 1089.52,
+        "deposits": 1100.0,
+        "true_profit": -10.48,
+        "true_profit_pct": -0.009526308215237433,
+        "trades": 1,
+        "wins": 0,
+        "champion": true
+      },
+      {
+        "strategy": "macd_trend",
+        "label_he": "מומנטום MACD",
+        "status": "active",
+        "equity": 1082.39,
+        "deposits": 1100.0,
+        "true_profit": -17.61,
+        "true_profit_pct": -0.01600927322505413,
+        "trades": 3,
+        "wins": 0,
+        "champion": false
+      },
+      {
+        "strategy": "ema_cross",
+        "label_he": "חציית ממוצעים",
+        "status": "active",
+        "equity": 1077.75,
+        "deposits": 1100.0,
+        "true_profit": -22.25,
+        "true_profit_pct": -0.020226299177364498,
+        "trades": 2,
+        "wins": 0,
+        "champion": false
+      },
+      {
+        "strategy": "bb_squeeze",
+        "label_he": "פריצה אחרי שקט",
+        "status": "active",
+        "equity": 1033.79,
+        "deposits": 1100.0,
+        "true_profit": -66.21,
+        "true_profit_pct": -0.0601951848757612,
+        "trades": 8,
+        "wins": 0,
+        "champion": false
+      },
+      {
+        "strategy": "legacy",
+        "label_he": "השיטה המקורית",
+        "status": "active",
+        "equity": 1018.88,
+        "deposits": 1100.0,
+        "true_profit": -81.12,
+        "true_profit_pct": -0.07374284363193118,
+        "trades": 7,
+        "wins": 0,
+        "champion": false
+      }
+    ],
+    "switches_today": [],
+    "eliminated": []
+  }
+}
